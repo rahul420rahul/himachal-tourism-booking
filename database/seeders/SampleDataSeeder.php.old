@@ -1,0 +1,372 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Package;
+use App\Models\Booking;
+use App\Models\Payment;
+use App\Models\Testimonial;
+use App\Models\Gallery;
+use Illuminate\Support\Facades\Hash;
+
+class SampleDataSeeder extends Seeder
+{
+    public function run()
+    {
+        // Create Admin User
+        User::updateOrCreate(
+            ['email' => 'admin@birbilling.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'phone' => '9876543210',
+                'address' => 'Bir, Kangra, Himachal Pradesh'
+            ]
+        );
+
+        // Create Customer Users
+        $customers = [
+            [
+                'name' => 'Priya Sharma',
+                'email' => 'priya@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'customer',
+                'phone' => '9876543211',
+                'address' => 'Delhi, India'
+            ],
+            [
+                'name' => 'Rahul Kumar',
+                'email' => 'rahul@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'customer',
+                'phone' => '9876543212',
+                'address' => 'Mumbai, India'
+            ],
+            [
+                'name' => 'Anjali Singh',
+                'email' => 'anjali@gmail.com',
+                'password' => Hash::make('password123'),
+                'role' => 'customer',
+                'phone' => '9876543213',
+                'address' => 'Bangalore, India'
+            ]
+        ];
+
+        foreach ($customers as $customer) {
+            User::updateOrCreate(
+                ['email' => $customer['email']],
+                $customer
+            );
+        }
+
+        // Create Packages
+        $packages = [
+            [
+                'name' => 'Paragliding Adventure',
+                'slug' => 'paragliding-adventure',
+                'description' => 'Experience the thrill of paragliding over the beautiful valleys of Bir Billing. Perfect for beginners and experienced flyers.',
+                'short_description' => 'Tandem paragliding flight with certified instructor',
+                'price' => 2500.00,
+                'duration' => '2-3 hours',
+                'max_people' => 1,
+                'location' => 'Bir Billing, Himachal Pradesh',
+                'includes' => 'Professional instructor, Safety equipment, Photography, Certificate',
+                'excludes' => 'Transportation, Food, Personal expenses',
+                'image_path' => 'images/packages/paragliding-adventure.jpg',
+                'gallery_images' => json_encode([
+                    'images/packages/paragliding-1.jpg',
+                    'images/packages/paragliding-2.jpg',
+                    'images/packages/paragliding-3.jpg'
+                ]),
+                'is_featured' => true,
+                'status' => 'active'
+            ],
+            [
+                'name' => 'Camping Under Stars',
+                'slug' => 'camping-under-stars',
+                'description' => 'Spend a night under the starlit sky with comfortable camping arrangements. Includes bonfire, music, and local cuisine.',
+                'short_description' => 'Overnight camping experience with bonfire',
+                'price' => 1200.00,
+                'duration' => '1 night, 2 days',
+                'max_people' => 4,
+                'location' => 'Bir, Himachal Pradesh',
+                'includes' => 'Tent accommodation, Meals, Bonfire, Local guide',
+                'excludes' => 'Transportation, Alcohol, Personal expenses',
+                'image_path' => 'images/packages/camping.jpg',
+                'gallery_images' => json_encode([
+                    'images/packages/camping-1.jpg',
+                    'images/packages/camping-2.jpg'
+                ]),
+                'is_featured' => false,
+                'status' => 'active'
+            ],
+            [
+                'name' => 'Trekking Expedition',
+                'slug' => 'trekking-expedition',
+                'description' => 'Explore the scenic trails around Bir with our experienced guides. Suitable for all fitness levels.',
+                'short_description' => 'Guided trekking through mountain trails',
+                'price' => 800.00,
+                'duration' => '6-8 hours',
+                'max_people' => 8,
+                'location' => 'Bir Billing Region',
+                'includes' => 'Professional guide, First aid kit, Refreshments',
+                'excludes' => 'Trekking gear, Transportation, Meals',
+                'image_path' => 'images/packages/trekking.jpg',
+                'gallery_images' => json_encode([
+                    'images/packages/trekking-1.jpg',
+                    'images/packages/trekking-2.jpg'
+                ]),
+                'is_featured' => true,
+                'status' => 'active'
+            ],
+            [
+                'name' => 'Photography Tour',
+                'slug' => 'photography-tour',
+                'description' => 'Capture the breathtaking landscapes of Himachal with our photography experts. Perfect for photography enthusiasts.',
+                'short_description' => 'Professional photography tour with expert guidance',
+                'price' => 1500.00,
+                'duration' => '4-5 hours',
+                'max_people' => 6,
+                'location' => 'Bir Billing and surrounding areas',
+                'includes' => 'Photography guide, Location scouting, Basic editing tips',
+                'excludes' => 'Camera equipment, Transportation, Meals',
+                'image_path' => 'images/packages/photography.jpg',
+                'gallery_images' => json_encode([
+                    'images/packages/photography-1.jpg',
+                    'images/packages/photography-2.jpg'
+                ]),
+                'is_featured' => false,
+                'status' => 'active'
+            ]
+        ];
+
+        foreach ($packages as $package) {
+            Package::updateOrCreate(
+                ['slug' => $package['slug']],
+                $package
+            );
+        }
+
+        // Get user IDs for bookings (after creation)
+        $adminUser = User::where('email', 'admin@birbilling.com')->first();
+        $priyaUser = User::where('email', 'priya@gmail.com')->first();
+        $rahulUser = User::where('email', 'rahul@gmail.com')->first();
+        $anjaliUser = User::where('email', 'anjali@gmail.com')->first();
+
+        // Get package IDs
+        $paraglidingPackage = Package::where('slug', 'paragliding-adventure')->first();
+        $campingPackage = Package::where('slug', 'camping-under-stars')->first();
+        $trekkingPackage = Package::where('slug', 'trekking-expedition')->first();
+
+        // Create Bookings
+        $bookings = [
+            [
+                'booking_number' => 'BB2025001',
+                'user_id' => $priyaUser->id,
+                'package_id' => $paraglidingPackage->id,
+                'booking_date' => '2025-08-15',
+                'number_of_people' => 1,
+                'participants' => 1,
+                'participant_details' => json_encode([
+                    ['name' => 'Priya Sharma', 'age' => 28, 'phone' => '9876543211']
+                ]),
+                'emergency_contact' => json_encode([
+                    'name' => 'Raj Sharma', 'phone' => '9876543200', 'relation' => 'Father'
+                ]),
+                'emergency_phone' => '9876543200',
+                'total_amount' => 2500.00,
+                'final_amount' => 2500.00,
+                'status' => 'confirmed',
+                'special_requests' => 'First time paragliding, please provide extra safety briefing'
+            ],
+            [
+                'booking_number' => 'BB2025002',
+                'user_id' => $rahulUser->id,
+                'package_id' => $campingPackage->id,
+                'booking_date' => '2025-08-20',
+                'number_of_people' => 2,
+                'participants' => 2,
+                'participant_details' => json_encode([
+                    ['name' => 'Rahul Kumar', 'age' => 32, 'phone' => '9876543212'],
+                    ['name' => 'Priya Kumar', 'age' => 29, 'phone' => '9876543213']
+                ]),
+                'emergency_contact' => json_encode([
+                    'name' => 'Suresh Kumar', 'phone' => '9876543201', 'relation' => 'Brother'
+                ]),
+                'emergency_phone' => '9876543201',
+                'total_amount' => 2400.00,
+                'final_amount' => 2400.00,
+                'status' => 'confirmed',
+                'special_requests' => 'Vegetarian meals preferred'
+            ],
+            [
+                'booking_number' => 'BB2025003',
+                'user_id' => $anjaliUser->id,
+                'package_id' => $trekkingPackage->id,
+                'booking_date' => '2025-08-25',
+                'number_of_people' => 1,
+                'participants' => 1,
+                'participant_details' => json_encode([
+                    ['name' => 'Anjali Singh', 'age' => 26, 'phone' => '9876543214']
+                ]),
+                'emergency_contact' => json_encode([
+                    'name' => 'Ravi Singh', 'phone' => '9876543202', 'relation' => 'Husband'
+                ]),
+                'emergency_phone' => '9876543202',
+                'total_amount' => 800.00,
+                'final_amount' => 800.00,
+                'status' => 'pending',
+                'special_requests' => 'Need beginner-friendly route'
+            ]
+        ];
+
+        foreach ($bookings as $booking) {
+            Booking::updateOrCreate(
+                ['booking_number' => $booking['booking_number']],
+                $booking
+            );
+        }
+
+        // Get booking IDs for payments
+        $booking1 = Booking::where('booking_number', 'BB2025001')->first();
+        $booking2 = Booking::where('booking_number', 'BB2025002')->first();
+        $booking3 = Booking::where('booking_number', 'BB2025003')->first();
+
+        // Create Payments
+        $payments = [
+            [
+                'booking_id' => $booking1->id,
+                'amount' => 2500.00,
+                'payment_method' => 'razorpay',
+                'transaction_id' => 'razorpay_' . uniqid(),
+                'status' => 'completed',
+                'payment_date' => '2025-08-10 10:30:00'
+            ],
+            [
+                'booking_id' => $booking2->id,
+                'amount' => 2400.00,
+                'payment_method' => 'razorpay',
+                'transaction_id' => 'razorpay_' . uniqid(),
+                'status' => 'completed',
+                'payment_date' => '2025-08-10 14:15:00'
+            ],
+            [
+                'booking_id' => $booking3->id,
+                'amount' => 800.00,
+                'payment_method' => 'razorpay',
+                'transaction_id' => 'razorpay_' . uniqid(),
+                'status' => 'pending',
+                'payment_date' => null
+            ]
+        ];
+
+        foreach ($payments as $payment) {
+            Payment::updateOrCreate(
+                ['booking_id' => $payment['booking_id']],
+                $payment
+            );
+        }
+
+        // Create Testimonials
+        $testimonials = [
+            [
+                'name' => 'Priya Sharma',
+                'email' => 'priya@gmail.com',
+                'package_id' => $paraglidingPackage->id,
+                'rating' => 5,
+                'comment' => 'Amazing paragliding experience! The instructor was very professional and made me feel safe throughout the flight. The views were breathtaking!',
+                'status' => 'approved'
+            ],
+            [
+                'name' => 'Ravi Gupta',
+                'email' => 'ravi@gmail.com',
+                'package_id' => $campingPackage->id,
+                'rating' => 4,
+                'comment' => 'Great camping experience. The location was perfect and the bonfire night was memorable. Food could have been better.',
+                'status' => 'approved'
+            ],
+            [
+                'name' => 'Sneha Patel',
+                'email' => 'sneha@gmail.com',
+                'package_id' => $trekkingPackage->id,
+                'rating' => 5,
+                'comment' => 'Loved the trekking tour! Our guide was knowledgeable and the trails were beautiful. Highly recommended for nature lovers.',
+                'status' => 'approved'
+            ],
+            [
+                'name' => 'Arjun Singh',
+                'email' => 'arjun@gmail.com',
+                'package_id' => $paraglidingPackage->id,
+                'rating' => 5,
+                'comment' => 'Best paragliding experience ever! Professional team, excellent safety measures, and stunning views of the Himalayas.',
+                'status' => 'approved'
+            ],
+            [
+                'name' => 'Meera Kumar',
+                'email' => 'meera@gmail.com',
+                'package_id' => Package::where('slug', 'photography-tour')->first()->id,
+                'rating' => 4,
+                'comment' => 'Photography tour was good. Got some great shots and learned new techniques. Would love to join again.',
+                'status' => 'pending'
+            ]
+        ];
+
+        foreach ($testimonials as $testimonial) {
+            Testimonial::updateOrCreate(
+                [
+                    'email' => $testimonial['email'],
+                    'package_id' => $testimonial['package_id']
+                ],
+                $testimonial
+            );
+        }
+
+        // Create Gallery
+        $galleryItems = [
+            [
+                'title' => 'Paragliding Over Valley',
+                'description' => 'Spectacular view of paragliding over the lush green valleys of Bir Billing',
+                'image_path' => 'images/gallery/paragliding-valley.jpg'
+            ],
+            [
+                'title' => 'Camping Bonfire Night',
+                'description' => 'Cozy bonfire night during camping under the starlit sky',
+                'image_path' => 'images/gallery/camping-bonfire.jpg'
+            ],
+            [
+                'title' => 'Mountain Trekking Trail',
+                'description' => 'Beautiful trekking trail through the Himalayan foothills',
+                'image_path' => 'images/gallery/trekking-trail.jpg'
+            ],
+            [
+                'title' => 'Sunrise from Billing',
+                'description' => 'Breathtaking sunrise view from Billing takeoff point',
+                'image_path' => 'images/gallery/billing-sunrise.jpg'
+            ],
+            [
+                'title' => 'Adventure Group Photo',
+                'description' => 'Happy group of adventurers after completing paragliding',
+                'image_path' => 'images/gallery/group-adventure.jpg'
+            ],
+            [
+                'title' => 'Himalayan Landscape',
+                'description' => 'Stunning landscape photography of Himalayan peaks',
+                'image_path' => 'images/gallery/himalayan-landscape.jpg'
+            ]
+        ];
+
+        foreach ($galleryItems as $item) {
+            Gallery::updateOrCreate(
+                ['title' => $item['title']],
+                $item
+            );
+        }
+
+        echo "Sample data seeded successfully!\n";
+        echo "Admin login: admin@birbilling.com / admin123\n";
+        echo "Customer logins: priya@gmail.com / password123\n";
+    }
+}

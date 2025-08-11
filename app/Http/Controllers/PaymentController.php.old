@@ -1,0 +1,259 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Models\Package;
+use App\Models\Booking;
+
+class BookingController extends Controller
+{
+    public function store(Request $request)
+    {
+        Log::info('Creating booking with data:', $request->all());
+        
+        try {
+            // Validate booking data
+            $validatedData = $request->validate([
+                'package_id' => 'required|exists:packages,id',
+                'travel_date' => 'required|date|after:today',
+                'adults' => 'required|integer|min:1|max:20',
+                'children' => 'required|integer|min:0|max:20',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20',
+                'special_requests' => 'nullable|string|max:1000'
+            ]);
+
+            $package = Package::findOrFail($validatedData['package_id']);
+            
+            // Calculate total amount
+            $totalParticipants = $validatedData['adults'] + $validatedData['children'];
+            $totalAmount = $package->price * $totalParticipants;
+            
+            // Create booking first
+            $booking = Booking::create([
+                'user_id' => Auth::id() ?? 1, // Temporary fallback for testing
+                'package_id' => $validatedData['package_id'],
+                'booking_date' => $validatedData['travel_date'],
+                'participants' => $totalParticipants,
+                'number_of_people' => $totalParticipants,
+                'total_amount' => $totalAmount,
+                'final_amount' => $totalAmount,
+                'status' => 'pending',
+                'booking_status' => 'pending',
+                'payment_status' => 'pending',
+                'participant_details' => json_encode([
+                    'adults' => $validatedData['adults'],
+                    'children' => $validatedData['children'],
+                    'contact_name' => $validatedData['name'],
+                    'contact_email' => $validatedData['email'],
+                    'contact_phone' => $validatedData['phone']
+                ]),
+                'special_requests' => $validatedData['special_requests'],
+                'booking_number' => 'BIR' . date('Ymd') . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT)
+            ]);
+
+            // Generate unique booking number after creation
+            $booking->update([
+                'booking_number' => 'BIR' . date('Ymd') . str_pad($booking->id, 4, '0', STR_PAD_LEFT)
+            ]);
+
+            Log::info('Booking created successfully', [
+                'booking_id' => $booking->id,
+                'total_amount' => $totalAmount,
+                'participants' => $totalParticipants
+            ]);
+
+            // Create payment order directly (no cURL)
+            try {
+                $paymentController = new \App\Http\Controllers\PaymentController();
+                
+                // Create a new request for payment
+                $paymentRequest = new Request([
+                    'booking_id' => $booking->id,
+                    'amount' => $totalAmount
+                ]);
+                
+                // Set the request method and headers
+                $paymentRequest->setMethod('POST');
+                $paymentRequest->headers->set('Content-Type', 'application/json');
+                $paymentRequest->headers->set('Accept', 'application/json');
+
+                Log::info('Creating payment order directly...', [
+                    'booking_id' => $booking->id,
+                    'amount' => $totalAmount
+                ]);
+
+                $paymentResponse = $paymentController->createOrder($paymentRequest);
+                $paymentData = json_decode($paymentResponse->getContent(), true);
+
+                if (!$paymentData || !$paymentData['success']) {
+                    $errorMessage = $paymentData['message'] ?? 'Unknown payment error';
+                    throw new \Exception('Payment order creation failed: ' . $errorMessage);
+                }
+
+                Log::info('Payment order created successfully', $paymentData);
+
+                // Return success response
+                return response()->json([
+                    'success' => true,
+                    'booking_id' => $booking->id,
+                    'payment_data' => $paymentData,
+                    'message' => 'Booking created successfully!',
+                    'redirect_url' => route('bookings.show', $booking->id)
+                ]);
+
+            } catch (\Exception $paymentError) {
+                Log::error('Payment order creation failed', [
+                    'error' => $paymentError->getMessage(),
+                    'booking_id' => $booking->id
+                ]);
+
+                // Still return success for booking, but with payment error
+                return response()->json([
+                    'success' => true,
+                    'booking_id' => $booking->id,
+                    'payment_error' => true,
+                    'message' => 'Booking created but payment setup failed. Please contact support.',
+                    'redirect_url' => route('bookings.show', $booking->id)
+                ]);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Booking validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+                'message' => 'Validation failed. Please check your input.'
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Booking creation failed', [
+                'error' => $e->getMessage(),
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking creation failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function myBookings()
+    {
+        try {
+            // TEMPORARY: For testing without authentication
+            // Comment this out once authentication is working
+            $bookings = Booking::with('package')->orderBy('created_at', 'desc')->get();
+            return view('bookings.my-bookings', compact('bookings'));
+            
+            // UNCOMMENT BELOW CODE ONCE AUTHENTICATION IS SETUP:
+            /*
+            // Check if user is authenticated
+            if (!Auth::check()) {
+                // If it's an API request, return JSON
+                if (request()->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Please login to view your bookings.'
+                    ], 401);
+                }
+                // If it's a web request, redirect to login
+                return redirect()->route('login')->with('error', 'Please login to view your bookings.');
+            }
+
+            // Get bookings for the authenticated user
+            $bookings = Booking::with('package')
+                ->where('user_id', Auth::id())
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // If it's an API request, return JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'bookings' => $bookings,
+                    'message' => 'Bookings retrieved successfully'
+                ]);
+            }
+
+            // If it's a web request, return view
+            return view('bookings.my-bookings', compact('bookings'));
+            */
+
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve bookings', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to retrieve bookings. Please try again later.'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to retrieve bookings.');
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            // TEMPORARY: For testing without authentication
+            $booking = Booking::with('package')->findOrFail($id);
+            
+            // UNCOMMENT BELOW FOR PRODUCTION:
+            // $booking = Booking::with('package')
+            //     ->where('user_id', Auth::id())
+            //     ->where('id', $id)
+            //     ->firstOrFail();
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'booking' => $booking,
+                    'message' => 'Booking retrieved successfully'
+                ]);
+            }
+
+            return view('bookings.show', compact('booking'));
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found.'
+                ], 404);
+            }
+
+            return redirect()->route('bookings.my')->with('error', 'Booking not found.');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve booking', [
+                'error' => $e->getMessage(),
+                'booking_id' => $id,
+                'user_id' => Auth::id()
+            ]);
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to retrieve booking. Please try again later.'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to retrieve booking.');
+        }
+    }
+}
