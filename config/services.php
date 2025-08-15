@@ -41,4 +41,10 @@ return [
         'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
     ],
 
+
+'openweather' => [
+    'api_key' => env('OPENWEATHER_API_KEY'),
+],
+
+
 ];

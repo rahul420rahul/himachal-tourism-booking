@@ -36,12 +36,14 @@ Route::get('/forecast/{city?}', [WeatherController::class, 'getForecast'])->name
 
 // Public Booking routes (for guest bookings)
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
-Route::get('/bookings/{booking}/guest', [BookingController::class, 'guestShow'])->name('bookings.guest');
+Route::get('/bookings/{id}/guest', [BookingController::class, 'guestShow'])->name('bookings.guest');
 
 // Payment routes (accessible to guests)
 Route::post('/payments/create-order', [PaymentController::class, 'createOrder'])->name('payments.create-order');
 Route::post('/payments/callback', [PaymentController::class, 'handleCallback'])->name('payments.callback');
 Route::post('/payments/verify', [PaymentController::class, 'verifyPayment'])->name('payments.verify');
+// Restored duplicate verify-payment route as it might be used in your flow
+Route::post('/verify-payment', [PaymentController::class, 'verifyPayment'])->name('verify.payment');
 Route::post('/payments/failure', [PaymentController::class, 'handleFailure'])->name('payments.failure');
 Route::get('/bookings/{booking}/success', [PaymentController::class, 'success'])->name('bookings.success');
 
@@ -85,7 +87,7 @@ Route::middleware('auth')->group(function () {
     // Invoice Management Routes
     Route::resource('invoices', InvoiceController::class);
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
-    Route::post('invoices/{invoice}/send', [InvoiceController::class, 'sendEmail'])->name('invoices.send');
+    Route::post('invoices/{invoice}/send', [BookingController::class, 'sendEmail'])->name('invoices.send'); // Fixed typo: was InvoiceController
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'markAsPaid'])->name('invoices.pay');
     Route::post('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
     
@@ -147,6 +149,12 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::get('/customers/search', [BookingController::class, 'searchCustomers'])->name('api.customers.search');
     Route::get('/bookings/calendar', [BookingController::class, 'calendarData'])->name('api.bookings.calendar');
     Route::get('/invoices/stats', [InvoiceController::class, 'getStats'])->name('api.invoices.stats');
+});
+
+// NEW API ROUTES FOR WEATHER AND TIME SLOTS (Make these public)
+Route::prefix('api')->group(function () {
+    Route::get('/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('api.time-slots');
+    Route::get('/weather-check', [BookingController::class, 'checkWeather'])->name('api.weather-check');
 });
 
 // Health Check Route

@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Package;
 use App\Models\Booking;
+use App\Services\WeatherService;
+use App\Mail\BookingConfirmation;
+use App\Notifications\BookingStatusChanged;
 
 class BookingController extends Controller
 {
@@ -24,14 +28,16 @@ class BookingController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
                 'phone' => 'required|string|max:20',
-                'special_requests' => 'nullable|string|max:1000'
+                'special_requests' => 'nullable|string|max:1000',
+                'time_slot' => 'nullable|string'
             ]);
 
             $package = Package::findOrFail($validatedData['package_id']);
             
-            // Calculate total amount
+            // Calculate total amount - FIXED: Convert to float to avoid BrickMath issues
             $totalParticipants = $validatedData['adults'] + $validatedData['children'];
-            $totalAmount = $package->price * $totalParticipants;
+            $packagePrice = (float) $package->price;
+            $totalAmount = $packagePrice * $totalParticipants;
             
             // Create booking
             $booking = Booking::create([
@@ -42,9 +48,11 @@ class BookingController extends Controller
                 'number_of_people' => $totalParticipants,
                 'total_amount' => $totalAmount,
                 'final_amount' => $totalAmount,
+                'discount_amount' => 0.00,
                 'status' => 'pending',
                 'booking_status' => 'pending',
                 'payment_status' => 'pending',
+                'time_slot' => $validatedData['time_slot'] ?? null,
                 'participant_details' => json_encode([
                     'adults' => $validatedData['adults'],
                     'children' => $validatedData['children'],
@@ -60,6 +68,14 @@ class BookingController extends Controller
             $booking->update([
                 'booking_number' => 'BIR' . date('Ymd') . str_pad($booking->id, 4, '0', STR_PAD_LEFT)
             ]);
+
+            // Send confirmation email
+            try {
+                Mail::to($validatedData['email'])->send(new BookingConfirmation($booking));
+                Log::info('Confirmation email sent to: ' . $validatedData['email']);
+            } catch (\Exception $e) {
+                Log::error('Email sending failed: ' . $e->getMessage());
+            }
 
             Log::info('Booking created successfully', [
                 'booking_id' => $booking->id,
@@ -104,8 +120,6 @@ class BookingController extends Controller
                 ];
             }
 
-            Log::info('Payment order created successfully', $paymentResponse);
-
             // Return payment data for frontend
             return response()->json([
                 'success' => true,
@@ -145,43 +159,18 @@ class BookingController extends Controller
     {
         try {
             // TEMPORARY: For testing without authentication
-            // Comment this out once authentication is working
             $bookings = Booking::with('package')->orderBy('created_at', 'desc')->get();
-            return view('bookings.my-bookings', compact('bookings'));
             
-            // UNCOMMENT BELOW CODE ONCE AUTHENTICATION IS SETUP:
-            /*
-            // Check if user is authenticated
-            if (!Auth::check()) {
-                // If it's an API request, return JSON
-                if (request()->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Please login to view your bookings.'
-                    ], 401);
+            // FIXED: Convert decimal values to avoid BrickMath issues in view
+            $bookings->each(function ($booking) {
+                $booking->total_amount = (float) $booking->getRawOriginal('total_amount');
+                $booking->final_amount = (float) $booking->getRawOriginal('final_amount');
+                if ($booking->package) {
+                    $booking->package->price = (float) $booking->package->getRawOriginal('price');
                 }
-                // If it's a web request, redirect to login
-                return redirect()->route('login')->with('error', 'Please login to view your bookings.');
-            }
-
-            // Get bookings for the authenticated user
-            $bookings = Booking::with('package')
-                ->where('user_id', Auth::id())
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            // If it's an API request, return JSON
-            if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'bookings' => $bookings,
-                    'message' => 'Bookings retrieved successfully'
-                ]);
-            }
-
-            // If it's a web request, return view
+            });
+            
             return view('bookings.my-bookings', compact('bookings'));
-            */
 
         } catch (\Exception $e) {
             Log::error('Failed to retrieve bookings', [
@@ -209,9 +198,12 @@ class BookingController extends Controller
                 $booking = Booking::with('package')->findOrFail($id);
             }
 
+            // FIXED: Convert decimal values before JSON response
+            $bookingData = $this->prepareBookingData($booking);
+
             return response()->json([
                 'success' => true,
-                'booking' => $booking,
+                'booking' => $bookingData,
                 'message' => 'Booking retrieved successfully'
             ]);
 
@@ -232,6 +224,202 @@ class BookingController extends Controller
                 'success' => false,
                 'message' => 'Failed to retrieve booking. Please try again later.'
             ], 500);
+        }
+    }
+
+    // FIXED METHOD - This resolves the BrickMath error
+    public function guestShow($id)
+    {
+        try {
+            // Find booking without authentication check (for guests)
+            $booking = Booking::with('package')->findOrFail($id);
+
+            // Check if it's an API request
+            if (request()->expectsJson()) {
+                // FIXED: Use helper method to prepare clean data
+                $bookingData = $this->prepareBookingData($booking);
+                
+                return response()->json([
+                    'success' => true,
+                    'booking' => $bookingData,
+                    'message' => 'Booking retrieved successfully'
+                ]);
+            }
+
+            // For web requests, prepare clean booking object
+            $cleanBooking = $this->prepareBookingForView($booking);
+            return view('bookings.guest-show', compact('cleanBooking'));
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Booking not found.'
+                ], 404);
+            }
+
+            return abort(404, 'Booking not found');
+
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve guest booking', [
+                'error' => $e->getMessage(),
+                'booking_id' => $id
+            ]);
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to retrieve booking. Please try again later.'
+                ], 500);
+            }
+
+            return abort(500, 'Failed to retrieve booking');
+        }
+    }
+
+    // HELPER METHOD: Convert booking data to avoid BrickMath issues
+    private function prepareBookingData($booking)
+    {
+        $bookingArray = $booking->toArray();
+        
+        // Convert decimal fields to float
+        $bookingArray['total_amount'] = (float) $booking->getRawOriginal('total_amount');
+        $bookingArray['final_amount'] = (float) $booking->getRawOriginal('final_amount');
+        $bookingArray['discount_amount'] = (float) ($booking->getRawOriginal('discount_amount') ?? 0);
+        
+        // Fix package data if exists
+        if ($booking->package) {
+            $packageArray = $booking->package->toArray();
+            $packageArray['price'] = (float) $booking->package->getRawOriginal('price');
+            $bookingArray['package'] = $packageArray;
+        }
+        
+        return $bookingArray;
+    }
+
+    // HELPER METHOD: Prepare booking object for view
+    private function prepareBookingForView($booking)
+    {
+        $bookingData = $this->prepareBookingData($booking);
+        $cleanBooking = (object) $bookingData;
+        
+        if (isset($bookingData['package'])) {
+            $cleanBooking->package = (object) $bookingData['package'];
+        }
+        
+        return $cleanBooking;
+    }
+
+    // NEW METHODS FOR WEATHER AND TIME SLOTS
+    public function getAvailableTimeSlots(Request $request)
+    {
+        $packageId = $request->get('package_id');
+        $date = $request->get('date');
+        
+        $package = Package::find($packageId);
+        if (!$package || !$package->available_time_slots) {
+            return response()->json([]);
+        }
+        
+        $timeSlots = json_decode($package->available_time_slots, true);
+        $allSlots = [];
+        
+        // Flatten time slots array
+        foreach ($timeSlots as $period => $slots) {
+            if (is_array($slots)) {
+                $allSlots = array_merge($allSlots, $slots);
+            }
+        }
+        
+        // Check for existing bookings on this date
+        $bookedSlots = Booking::where('package_id', $packageId)
+            ->whereDate('booking_date', $date)
+            ->whereNotNull('time_slot')
+            ->pluck('time_slot')
+            ->toArray();
+        
+        // Filter out booked slots
+        $availableSlots = array_filter($allSlots, function($slot) use ($bookedSlots) {
+            return !in_array($slot, $bookedSlots);
+        });
+        
+        return response()->json(array_values($availableSlots));
+    }
+
+    public function checkWeather()
+    {
+        try {
+            $weatherService = app(WeatherService::class);
+            $weather = $weatherService->getCurrentWeather();
+            $forecast = $weatherService->getForecast();
+            
+            return response()->json([
+                'current' => $weather,
+                'forecast' => $forecast,
+                'safe_for_paragliding' => $weather['suitable_for_paragliding'] ?? 'good'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Weather check failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Weather data unavailable'], 500);
+        }
+    }
+
+    // ADMIN METHODS
+    public function index()
+    {
+        try {
+            $bookings = Booking::with(['package', 'user'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+
+            // FIXED: Convert decimal values for admin view
+            $bookings->getCollection()->each(function ($booking) {
+                $booking->total_amount = (float) $booking->getRawOriginal('total_amount');
+                $booking->final_amount = (float) $booking->getRawOriginal('final_amount');
+                if ($booking->package) {
+                    $booking->package->price = (float) $booking->package->getRawOriginal('price');
+                }
+            });
+
+            return view('admin.bookings.index', compact('bookings'));
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve admin bookings', [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Failed to retrieve bookings.');
+        }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $booking = Booking::findOrFail($id);
+            $oldStatus = $booking->status;
+            
+            $request->validate([
+                'status' => 'required|in:pending,confirmed,cancelled,completed'
+            ]);
+            
+            $booking->update(['status' => $request->status]);
+            
+            // Send notification
+            try {
+                if ($booking->customer_email) {
+                    $booking->notify(new BookingStatusChanged($booking, $oldStatus, $request->status));
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to send status change notification: ' . $e->getMessage());
+            }
+            
+            return back()->with('success', 'Booking status updated successfully!');
+        } catch (\Exception $e) {
+            Log::error('Failed to update booking status', [
+                'error' => $e->getMessage(),
+                'booking_id' => $id
+            ]);
+            
+            return back()->with('error', 'Failed to update booking status.');
         }
     }
 }

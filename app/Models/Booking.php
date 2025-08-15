@@ -31,15 +31,24 @@ class Booking extends Model
         'medical_conditions',
         'cancellation_reason',
         'notes',
+        'time_slot',
+        // Razorpay fields
+        'razorpay_order_id',
+        'razorpay_payment_id',
+        'razorpay_signature',
+        'payment_method',
+        'paid_at',
     ];
 
+    // FIX: Remove decimal casting to avoid BrickMath issues
     protected $casts = [
         'booking_date' => 'date',
-        'total_amount' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'final_amount' => 'decimal:2',
+        'total_amount' => 'float',
+        'discount_amount' => 'float', 
+        'final_amount' => 'float',
         'participant_details' => 'array',
         'medical_conditions' => 'array',
+        'paid_at' => 'datetime',
     ];
 
     // Relationships
@@ -61,7 +70,7 @@ class Booking extends Model
     // Helper methods
     public function generateBookingNumber()
     {
-        return 'BIR' . date('Y') . str_pad($this->id, 6, '0', STR_PAD_LEFT);
+        return 'BIR' . date('Ymd') . str_pad($this->id, 4, '0', STR_PAD_LEFT);
     }
 
     public function isPending()
@@ -86,23 +95,24 @@ class Booking extends Model
 
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
-            'pending' => 'yellow',
+        return match ($this->status) {
+            'pending'   => 'yellow',
             'confirmed' => 'blue',
             'completed' => 'green',
             'cancelled' => 'red',
-            default => 'gray'
+            default     => 'gray'
         };
     }
 
     public function getPaymentStatusColorAttribute()
     {
-        return match($this->payment_status) {
-            'pending' => 'yellow',
-            'paid' => 'green',
-            'failed' => 'red',
-            'refunded' => 'blue',
-            default => 'gray'
+        return match ($this->payment_status) {
+            'pending'    => 'yellow',
+            'processing' => 'blue',
+            'paid'       => 'green',
+            'failed'     => 'red',
+            'refunded'   => 'orange',
+            default      => 'gray'
         };
     }
 
@@ -126,10 +136,10 @@ class Booking extends Model
     {
         $details = $this->participant_details ?? [];
         return [
-            'name' => $details['customer_name'] ?? 'N/A',
-            'email' => $details['customer_email'] ?? 'N/A',
-            'phone' => $details['customer_phone'] ?? 'N/A',
-            'adults' => $details['adults'] ?? 0,
+            'name'     => $details['contact_name'] ?? $details['customer_name'] ?? 'N/A',
+            'email'    => $details['contact_email'] ?? $details['customer_email'] ?? 'N/A',
+            'phone'    => $details['contact_phone'] ?? $details['customer_phone'] ?? 'N/A',
+            'adults'   => $details['adults'] ?? 0,
             'children' => $details['children'] ?? 0,
         ];
     }
@@ -137,21 +147,89 @@ class Booking extends Model
     // Get customer name from participant details
     public function getCustomerNameAttribute()
     {
-        $details = $this->participant_details ?? [];
-        return $details['customer_name'] ?? $this->user->name ?? 'N/A';
+        $details = is_array($this->participant_details)
+            ? $this->participant_details
+            : json_decode($this->participant_details, true) ?? [];
+        return $details['contact_name'] ?? $details['customer_name'] ?? ($this->user->name ?? 'N/A');
     }
 
     // Get customer email from participant details
     public function getCustomerEmailAttribute()
     {
-        $details = $this->participant_details ?? [];
-        return $details['customer_email'] ?? $this->user->email ?? 'N/A';
+        $details = is_array($this->participant_details)
+            ? $this->participant_details
+            : json_decode($this->participant_details, true) ?? [];
+        return $details['contact_email'] ?? $details['customer_email'] ?? ($this->user->email ?? 'N/A');
     }
 
     // Get customer phone from participant details
     public function getCustomerPhoneAttribute()
     {
-        $details = $this->participant_details ?? [];
-        return $details['customer_phone'] ?? 'N/A';
+        $details = is_array($this->participant_details)
+            ? $this->participant_details
+            : json_decode($this->participant_details, true) ?? [];
+        return $details['contact_phone'] ?? $details['customer_phone'] ?? 'N/A';
+    }
+
+    // Get adults count
+    public function getAdultsAttribute()
+    {
+        $details = is_array($this->participant_details)
+            ? $this->participant_details
+            : json_decode($this->participant_details, true) ?? [];
+        return (int) ($details['adults'] ?? 1);
+    }
+
+    // Get children count  
+    public function getChildrenAttribute()
+    {
+        $details = is_array($this->participant_details)
+            ? $this->participant_details
+            : json_decode($this->participant_details, true) ?? [];
+        return (int) ($details['children'] ?? 0);
+    }
+
+    // Check if payment is successful
+    public function isPaymentSuccessful()
+    {
+        return $this->payment_status === 'paid' && !empty($this->razorpay_payment_id);
+    }
+
+    // Get total participants
+    public function getTotalParticipantsAttribute()
+    {
+        return $this->adults + $this->children;
+    }
+
+    // Get formatted time slot
+    public function getFormattedTimeSlotAttribute()
+    {
+        if (!$this->time_slot) {
+            return 'To be decided';
+        }
+        
+        return $this->time_slot;
+    }
+
+    // Check if booking requires weather check
+    public function requiresWeatherCheck()
+    {
+        return $this->package && $this->package->requires_weather_check;
+    }
+
+    // FIX: Add custom accessor for decimal formatting
+    public function getTotalAmountAttribute($value)
+    {
+        return $value ? number_format((float)$value, 2, '.', '') : '0.00';
+    }
+
+    public function getFinalAmountAttribute($value)
+    {
+        return $value ? number_format((float)$value, 2, '.', '') : '0.00';
+    }
+
+    public function getDiscountAmountAttribute($value)
+    {
+        return $value ? number_format((float)$value, 2, '.', '') : '0.00';
     }
 }
