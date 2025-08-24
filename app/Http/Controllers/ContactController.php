@@ -21,12 +21,45 @@ class ContactController extends Controller
             'phone' => 'required|string|max:20',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:2000',
-            'preferred_contact' => 'in:email,phone,whatsapp'
+            'preferred_contact' => 'nullable|in:email,phone,whatsapp'
         ]);
 
-        // Save to database
-        ContactInquiry::create($validated);
+        // Set default preferred contact if not provided
+        $validated['preferred_contact'] = $validated['preferred_contact'] ?? 'email';
 
-        return back()->with('success', 'Thank you! Your message has been sent successfully. We will get back to you soon.');
+        try {
+            // Save to database
+            ContactInquiry::create($validated);
+
+            return back()->with('success', 'Thank you! Your message has been sent successfully. We will get back to you within 2 hours during business hours.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Sorry, there was an error sending your message. Please try again or call us directly.');
+        }
+    }
+
+    // Admin methods for managing contacts
+    public function adminIndex()
+    {
+        $contacts = ContactInquiry::latest()->paginate(20);
+        return view('admin.contacts.index', compact('contacts'));
+    }
+
+    public function adminShow(ContactInquiry $contact)
+    {
+        $contact->markAsRead();
+        return view('admin.contacts.show', compact('contact'));
+    }
+
+    public function markAsRead(ContactInquiry $contact)
+    {
+        $contact->update(['is_read' => true]);
+        return back()->with('success', 'Contact marked as read.');
+    }
+
+    public function destroy(ContactInquiry $contact)
+    {
+        $contact->delete();
+        return back()->with('success', 'Contact inquiry deleted successfully.');
     }
 }

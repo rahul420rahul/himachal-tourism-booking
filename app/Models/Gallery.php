@@ -10,17 +10,17 @@ class Gallery extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'title',
-        'description',
-        'image_path',
-        'image_alt',
-        'category',
-        'package_id',
-        'sort_order',
-        'is_featured',
-    ];
-
+protected $fillable = [
+    'title',
+    'description', 
+    'image_path',
+    'thumbnail_path',
+    'type',
+    'category',
+    'sort_order',
+    'is_active',
+    'tags'
+];
     protected $casts = [
         'sort_order' => 'integer',
         'is_featured' => 'boolean',

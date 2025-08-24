@@ -10,15 +10,22 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $packages = Package::where('is_active', true)
-                          ->orderBy('featured', 'desc')
-                          ->limit(6)
-                          ->get();
-                          
-        $testimonials = Testimonial::where('is_approved', true)
-                                 ->orderBy('created_at', 'desc')
-                                 ->limit(6)
-                                 ->get();
+        try {
+            $packages = Package::where('is_active', true)
+                        ->orderBy('featured', 'desc')
+                        ->limit(6)
+                        ->get();
+        } catch (\Exception $e) {
+            $packages = collect();
+        }
+        
+        try {
+            $testimonials = Testimonial::where('is_active', true)
+                            ->limit(3)
+                            ->get();
+        } catch (\Exception $e) {
+            $testimonials = collect();
+        }
         
         return view('home', compact('packages', 'testimonials'));
     }

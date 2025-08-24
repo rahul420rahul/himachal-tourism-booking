@@ -2,201 +2,177 @@
 @section('content')
 
 <!-- Hero Section -->
-<section class="bg-gradient-to-r from-blue-600 to-purple-700 py-20 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-6" data-aos="fade-up">
-            Our Tour Packages
+<section class="relative bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 py-32 text-white overflow-hidden">
+    {{-- Background Pattern --}}
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></g></svg>');"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight" data-aos="fade-up">
+            Adventure Awaits
+            <span class="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+                In The Mountains
+            </span>
         </h1>
-        <p class="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-            Discover the most beautiful destinations in Himachal Pradesh with our carefully crafted tour packages
+        <p class="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+            Discover breathtaking landscapes, thrilling adventures, and unforgettable experiences in the heart of Himachal Pradesh
         </p>
+        <div class="mt-10" data-aos="fade-up" data-aos-delay="200">
+            <a href="#packages" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-orange-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                Explore Packages
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </a>
+        </div>
     </div>
 </section>
 
 <!-- Filters Section -->
-<section class="py-8 bg-white shadow-sm sticky top-16 z-40">
+<section class="py-8 bg-white border-b border-gray-200 sticky top-0 z-40 backdrop-blur-sm bg-white/95">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-4">
-                <label class="text-gray-700 font-semibold">Filter by:</label>
-                <select id="duration-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+        <div class="flex flex-wrap items-center justify-between gap-6">
+            <div class="flex items-center space-x-6">
+                <h3 class="text-lg font-bold text-gray-900">Filter Adventures:</h3>
+                <select id="duration-filter" class="border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm">
                     <option value="">All Durations</option>
                     <option value="1-3">1-3 Days</option>
                     <option value="4-7">4-7 Days</option>
                     <option value="8+">8+ Days</option>
                 </select>
-                <select id="price-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                <select id="price-filter" class="border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm">
                     <option value="">All Prices</option>
-                    <option value="0-10000">Under ₹10,000</option>
-                    <option value="10000-25000">₹10,000 - ₹25,000</option>
-                    <option value="25000+">Above ₹25,000</option>
+                    <option value="0-5000">Under ₹5,000</option>
+                    <option value="5000-15000">₹5,000 - ₹15,000</option>
+                    <option value="15000+">Above ₹15,000</option>
+                </select>
+                <select id="type-filter" class="border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm">
+                    <option value="">All Activities</option>
+                    <option value="trekking">Trekking</option>
+                    <option value="paragliding">Paragliding</option>
+                    <option value="camping">Camping</option>
+                    <option value="adventure">Adventure</option>
                 </select>
             </div>
-            <div class="text-gray-600">
-                Showing <span id="package-count">{{ $packages->count() }}</span> packages
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-600 font-medium">
+                    Showing <span id="package-count" class="font-bold text-orange-600">{{ $packages->count() }}</span> adventures
+                </span>
+                <div class="flex space-x-2">
+                    <button id="grid-view" class="p-2 rounded-lg bg-orange-100 text-orange-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                    </button>
+                    <button id="list-view" class="p-2 rounded-lg text-gray-400 hover:bg-gray-100">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Packages Grid -->
-<section class="py-16 bg-gray-50">
+<section id="packages" class="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div id="packages-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @forelse($packages as $package)
-                <div class="package-card bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300" 
+        <div class="text-center mb-16" data-aos="fade-up">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Choose Your 
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Adventure</span>
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                From thrilling treks to peaceful paragliding experiences, we've got something for every adventurer
+            </p>
+        </div>
+
+        <div id="packages-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+            @forelse($packages as $index => $package)
+                <div class="package-card" 
                      data-aos="fade-up" 
-                     data-aos-delay="{{ $loop->index * 100 }}"
-                     data-duration="{{ $package->duration }}"
-                     data-price="{{ $package->price }}">
+                     data-aos-delay="{{ $index * 100 }}"
+                     data-duration="{{ $package->duration ?? 2 }}"
+                     data-price="{{ $package->price }}"
+                     data-type="{{ strtolower($package->type ?? 'adventure') }}">
                      
-                    <!-- Package Image -->
-                    <div class="relative overflow-hidden">
-                        @if($package->image)
-                            <img src="{{ $package->image }}" alt="{{ $package->name }}" class="w-full h-64 object-cover hover:scale-110 transition-transform duration-500">
-                        @else
-                            <div class="w-full h-64 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                <span class="text-white text-4xl font-bold">{{ substr($package->name, 0, 1) }}</span>
-                            </div>
-                        @endif
-                        
-                        <!-- Featured Badge -->
-                        @if($package->featured)
-                            <div class="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                ⭐ Featured
-                            </div>
-                        @endif
-                        
-                        <!-- Price Badge -->
-                        <div class="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg">
-                            <span class="text-sm">Starting from</span>
-                            <div class="text-xl font-bold">₹{{ number_format($package->price) }}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Package Content -->
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-xl font-bold text-gray-900">{{ $package->name }}</h3>
-                            <div class="flex items-center text-yellow-500">
-                                @for($i = 0; $i < 5; $i++)
-                                    ⭐
-                                @endfor
-                                <span class="ml-1 text-gray-600 text-sm">(4.8)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="text-gray-600 mb-4 line-clamp-3">{{ $package->description }}</p>
-                        
-                        <!-- Package Details -->
-                        <div class="flex items-center justify-between mb-4 text-sm text-gray-500">
-                            <div class="flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z"/>
-                                </svg>
-                                {{ $package->duration }} Days
-                            </div>
-                            <div class="flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                All Inclusive
-                            </div>
-                        </div>
-                        
-                        <!-- Key Features -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-900 mb-2">Highlights:</h4>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach(json_decode($package->inclusions ?? '[]') as $inclusion)
-                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{ $inclusion }}</span>
-                                @endforeach
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="flex space-x-3">
-                            <a href="{{ route('packages.show', $package) }}" class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-center">
-                                View Details
-                            </a>
-                            @auth
-                                <button onclick="quickBook({{ $package->id }})" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                                    Quick Book
-                                </button>
-                            @else
-                                <a href="{{ route('login') }}" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition text-center">
-                                    Login to Book
-                                </a>
-                            @endauth
-                        </div>
-                    </div>
+                    {{-- Use the new Sky Trekkers style card component --}}
+                    <x-package-card :package="$package" :index="$index" />
                 </div>
             @empty
                 <div class="col-span-3 text-center py-20">
-                    <div class="text-gray-400 text-6xl mb-4">📦</div>
-                    <h3 class="text-2xl font-semibold text-gray-900 mb-2">No Packages Found</h3>
-                    <p class="text-gray-600">We're working on adding amazing packages for you!</p>
+                    <div class="relative">
+                        <div class="text-gray-300 text-8xl mb-6">🏔️</div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="bg-white rounded-full p-4 shadow-lg">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-900 mb-4">No Adventures Found</h3>
+                    <p class="text-gray-600 mb-8 text-lg">We're constantly adding new exciting packages. Check back soon or contact us for custom adventures!</p>
+                    <a href="{{ route('contact') }}" class="inline-flex items-center bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full font-bold hover:from-orange-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-xl">
+                        Plan Custom Adventure
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
                 </div>
             @endforelse
         </div>
         
-        <!-- Load More Button -->
-        @if($packages->hasPages())
-            <div class="text-center mt-12">
-                {{ $packages->links() }}
+        {{-- Load More Section --}}
+        @if(method_exists($packages, 'hasPages') && $packages->hasPages())
+            <div class="text-center mt-16">
+                <div class="inline-flex items-center space-x-4 bg-white rounded-full px-8 py-4 shadow-lg">
+                    {{ $packages->links() }}
+                </div>
             </div>
         @endif
     </div>
 </section>
 
-<!-- Quick Book Modal -->
-<div id="quickBookModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xl font-bold">Quick Booking</h3>
-            <button onclick="closeQuickBook()" class="text-gray-400 hover:text-gray-600">✕</button>
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold mb-6" data-aos="fade-up">
+            Ready for Your Next Adventure?
+        </h2>
+        <p class="text-xl opacity-90 mb-10" data-aos="fade-up" data-aos-delay="100">
+            Join thousands of adventurers who have experienced the thrill of Himachal Pradesh with us
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="200">
+            <a href="{{ route('contact') }}" class="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-orange-600 hover:to-red-700 transform hover:scale-105 transition-all duration-300 shadow-xl">
+                Get Custom Quote
+            </a>
+            <a href="tel:+91-9876543210" class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-gray-900 transform hover:scale-105 transition-all duration-300">
+                Call Now: +91-9876543210
+            </a>
         </div>
-        <form id="quickBookForm">
-            @csrf
-            <input type="hidden" id="quick-package-id" name="package_id">
-            
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Travel Date</label>
-                <input type="date" name="travel_date" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Adults</label>
-                    <input type="number" name="adults" min="1" value="2" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Children</label>
-                    <input type="number" name="children" min="0" value="0" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
-            
-            <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-                Proceed to Book
-            </button>
-        </form>
     </div>
-</div>
+</section>
 
 <script>
-// Filter functionality
+// Enhanced Filter functionality
 document.getElementById('duration-filter').addEventListener('change', filterPackages);
 document.getElementById('price-filter').addEventListener('change', filterPackages);
+document.getElementById('type-filter').addEventListener('change', filterPackages);
 
 function filterPackages() {
     const durationFilter = document.getElementById('duration-filter').value;
     const priceFilter = document.getElementById('price-filter').value;
+    const typeFilter = document.getElementById('type-filter').value;
     const packages = document.querySelectorAll('.package-card');
     let visibleCount = 0;
     
     packages.forEach(package => {
         const duration = parseInt(package.dataset.duration);
         const price = parseInt(package.dataset.price);
+        const type = package.dataset.type;
         let show = true;
         
         // Duration filter
@@ -208,53 +184,107 @@ function filterPackages() {
         
         // Price filter
         if (priceFilter && show) {
-            if (priceFilter === '0-10000' && price > 10000) show = false;
-            if (priceFilter === '10000-25000' && (price < 10000 || price > 25000)) show = false;
-            if (priceFilter === '25000+' && price < 25000) show = false;
+            if (priceFilter === '0-5000' && price > 5000) show = false;
+            if (priceFilter === '5000-15000' && (price < 5000 || price > 15000)) show = false;
+            if (priceFilter === '15000+' && price < 15000) show = false;
         }
         
-        package.style.display = show ? 'block' : 'none';
-        if (show) visibleCount++;
+        // Type filter
+        if (typeFilter && show) {
+            if (!type.includes(typeFilter)) show = false;
+        }
+        
+        // Smooth animation
+        if (show) {
+            package.style.display = 'block';
+            setTimeout(() => {
+                package.style.opacity = '1';
+                package.style.transform = 'translateY(0)';
+            }, 50);
+            visibleCount++;
+        } else {
+            package.style.opacity = '0';
+            package.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                package.style.display = 'none';
+            }, 300);
+        }
     });
     
     document.getElementById('package-count').textContent = visibleCount;
 }
 
-// Quick book functionality
-function quickBook(packageId) {
-    document.getElementById('quick-package-id').value = packageId;
-    document.getElementById('quickBookModal').classList.remove('hidden');
-}
-
-function closeQuickBook() {
-    document.getElementById('quickBookModal').classList.add('hidden');
-}
-
-// Handle quick book form submission
-document.getElementById('quickBookForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch('{{ route("bookings.store") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `/bookings/${data.booking_id}`;
-        } else {
-            alert('Booking failed. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Something went wrong. Please try again.');
     });
 });
+
+// Add loading animation
+window.addEventListener('load', function() {
+    document.body.classList.add('loaded');
+});
 </script>
+
+<style>
+/* Custom animations and styles */
+.package-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loaded .package-card {
+    animation: slideInUp 0.6s ease-out forwards;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Background patterns */
+.bg-pattern {
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #f97316, #dc2626);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #ea580c, #b91c1c);
+}
+</style>
 
 @endsection

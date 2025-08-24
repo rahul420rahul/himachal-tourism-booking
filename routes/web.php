@@ -10,18 +10,9 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
 // Root route - home page
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -34,7 +25,7 @@ Route::get('/packages/{package}', [PackageController::class, 'show'])->name('pac
 Route::get('/weather/{city?}', [WeatherController::class, 'getCurrentWeather'])->name('weather.current');
 Route::get('/forecast/{city?}', [WeatherController::class, 'getForecast'])->name('weather.forecast');
 
-// Public Booking routes (for guest bookings)
+// PUBLIC BOOKING ROUTES - MUST BE OUTSIDE AUTH MIDDLEWARE
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/bookings/{id}/guest', [BookingController::class, 'guestShow'])->name('bookings.guest');
 
@@ -42,10 +33,10 @@ Route::get('/bookings/{id}/guest', [BookingController::class, 'guestShow'])->nam
 Route::post('/payments/create-order', [PaymentController::class, 'createOrder'])->name('payments.create-order');
 Route::post('/payments/callback', [PaymentController::class, 'handleCallback'])->name('payments.callback');
 Route::post('/payments/verify', [PaymentController::class, 'verifyPayment'])->name('payments.verify');
-// Restored duplicate verify-payment route as it might be used in your flow
 Route::post('/verify-payment', [PaymentController::class, 'verifyPayment'])->name('verify.payment');
 Route::post('/payments/failure', [PaymentController::class, 'handleFailure'])->name('payments.failure');
 Route::get('/bookings/{booking}/success', [PaymentController::class, 'success'])->name('bookings.success');
+Route::post('/payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
 
 // Contact routes
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
@@ -54,6 +45,30 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 // About and Services routes
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/services', [ServiceController::class, 'index'])->name('services');
+
+// Service specific pages
+Route::prefix('services')->name('services.')->group(function () {
+    Route::get('/tandem-flights', [ServiceController::class, 'tandem'])->name('tandem');
+    Route::get('/training-courses', [ServiceController::class, 'training'])->name('training');
+    Route::get('/equipment-rental', [ServiceController::class, 'rental'])->name('rental');
+    Route::get('/photography', [ServiceController::class, 'photography'])->name('photography');
+});
+
+// Gallery
+Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+
+// Static pages
+Route::get('/safety', [PageController::class, 'safety'])->name('safety');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/terms-conditions', [PageController::class, 'terms'])->name('terms');
+Route::get('/refund-policy', [PageController::class, 'refund'])->name('refund');
+
+// PUBLIC API Routes (NO AUTH REQUIRED)
+Route::prefix('api')->group(function () {
+    Route::get('/packages/search', [PackageController::class, 'search'])->name('api.packages.search');
+    Route::get('/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('api.time-slots');
+    Route::get('/weather-check', [BookingController::class, 'checkWeather'])->name('api.weather-check');
+});
 
 // CORS preflight requests for payment routes
 Route::options('/payments/{any}', function () {
@@ -67,6 +82,9 @@ Route::options('/payments/{any}', function () {
 
 // Protected routes (require authentication)
 Route::middleware('auth')->group(function () {
+    // Complete payment routes
+Route::post('/bookings/{booking}/complete-payment', [PaymentController::class, 'createPaymentOrder'])->name('bookings.complete-payment');
+Route::post('/bookings/{booking}/verify-payment', [PaymentController::class, 'verifyPayment'])->name('bookings.verify-payment');
     
     // Dashboard
     Route::get('/dashboard', function () {
@@ -77,6 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     
     // Authenticated Booking routes
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
@@ -87,9 +106,16 @@ Route::middleware('auth')->group(function () {
     // Invoice Management Routes
     Route::resource('invoices', InvoiceController::class);
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
-    Route::post('invoices/{invoice}/send', [BookingController::class, 'sendEmail'])->name('invoices.send'); // Fixed typo: was InvoiceController
+    Route::post('invoices/{invoice}/send', [BookingController::class, 'sendEmail'])->name('invoices.send');
     Route::post('invoices/{invoice}/pay', [InvoiceController::class, 'markAsPaid'])->name('invoices.pay');
     Route::post('invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
+    
+    // AUTHENTICATED API Routes
+    Route::prefix('api')->group(function () {
+        Route::get('/customers/search', [BookingController::class, 'searchCustomers'])->name('api.customers.search');
+        Route::get('/bookings/calendar', [BookingController::class, 'calendarData'])->name('api.bookings.calendar');
+        Route::get('/invoices/stats', [InvoiceController::class, 'getStats'])->name('api.invoices.stats');
+    });
     
     // Admin/Manager only routes
     Route::middleware(['can:manage-system'])->group(function () {
@@ -101,20 +127,15 @@ Route::middleware('auth')->group(function () {
         Route::patch('/packages/{package}', [PackageController::class, 'update'])->name('packages.update');
         Route::delete('/packages/{package}', [PackageController::class, 'destroy'])->name('packages.destroy');
         
-        // All Bookings Management
-        Route::get('/admin/bookings', [BookingController::class, 'index'])->name('admin.bookings.index');
-        Route::get('/admin/bookings/{booking}', [BookingController::class, 'adminShow'])->name('admin.bookings.show');
-        Route::patch('/admin/bookings/{booking}/status', [BookingController::class, 'updateStatus'])->name('admin.bookings.status');
-        
         // Payment Management
-        Route::get('/admin/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
-        Route::get('/admin/payments/{payment}', [PaymentController::class, 'show'])->name('admin.payments.show');
+        Route::get('/manage/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
+        Route::get('/manage/payments/{payment}', [PaymentController::class, 'show'])->name('admin.payments.show');
         
-        // Contact Inquiries Management
-        Route::get('/admin/contacts', [ContactController::class, 'adminIndex'])->name('admin.contacts.index');
-        Route::get('/admin/contacts/{contact}', [ContactController::class, 'adminShow'])->name('admin.contacts.show');
-        Route::patch('/admin/contacts/{contact}', [ContactController::class, 'markAsRead'])->name('admin.contacts.read');
-        Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy'])->name('admin.contacts.destroy');
+        // Contact Management
+        Route::get('/manage/contacts', [ContactController::class, 'adminIndex'])->name('admin.contacts.index');
+        Route::get('/manage/contacts/{contact}', [ContactController::class, 'adminShow'])->name('admin.contacts.show');
+        Route::patch('/manage/contacts/{contact}', [ContactController::class, 'markAsRead'])->name('admin.contacts.read');
+        Route::delete('/manage/contacts/{contact}', [ContactController::class, 'destroy'])->name('admin.contacts.destroy');
         
         // Service Management
         Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
@@ -123,17 +144,23 @@ Route::middleware('auth')->group(function () {
         Route::patch('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
         Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
         
+        // Gallery Management
+        Route::post('/gallery', [GalleryController::class, 'store'])->name('gallery.store');
+        Route::get('/gallery/create', [GalleryController::class, 'create'])->name('gallery.create');
+        Route::get('/gallery/{gallery}/edit', [GalleryController::class, 'edit'])->name('gallery.edit');
+        Route::patch('/gallery/{gallery}', [GalleryController::class, 'update'])->name('gallery.update');
+        Route::delete('/gallery/{gallery}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
+        
         // Reports and Analytics
-        Route::get('/admin/reports', function () {
+        Route::get('/manage/reports', function () {
             return view('admin.reports.index');
         })->name('admin.reports');
         
-        Route::get('/admin/analytics', function () {
+        Route::get('/manage/analytics', function () {
             return view('admin.analytics.index');
         })->name('admin.analytics');
         
-        // System Settings
-        Route::get('/admin/settings', function () {
+        Route::get('/manage/settings', function () {
             return view('admin.settings.index');
         })->name('admin.settings');
     });
@@ -142,20 +169,6 @@ Route::middleware('auth')->group(function () {
 // Guest Invoice View (Public access with token)
 Route::get('/invoices/{invoice}/view/{token}', [InvoiceController::class, 'publicView'])->name('invoices.public');
 Route::get('/invoices/{invoice}/download/{token}', [InvoiceController::class, 'publicDownload'])->name('invoices.public.download');
-
-// API Routes for AJAX calls
-Route::prefix('api')->middleware('auth')->group(function () {
-    Route::get('/packages/search', [PackageController::class, 'search'])->name('api.packages.search');
-    Route::get('/customers/search', [BookingController::class, 'searchCustomers'])->name('api.customers.search');
-    Route::get('/bookings/calendar', [BookingController::class, 'calendarData'])->name('api.bookings.calendar');
-    Route::get('/invoices/stats', [InvoiceController::class, 'getStats'])->name('api.invoices.stats');
-});
-
-// NEW API ROUTES FOR WEATHER AND TIME SLOTS (Make these public)
-Route::prefix('api')->group(function () {
-    Route::get('/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('api.time-slots');
-    Route::get('/weather-check', [BookingController::class, 'checkWeather'])->name('api.weather-check');
-});
 
 // Health Check Route
 Route::get('/health', function () {
@@ -172,10 +185,17 @@ Route::get('/maintenance', function () {
     return view('errors.503');
 })->name('maintenance');
 
+// Rewards routes
+Route::get('/rewards', function () {
+    return view('rewards.index');
+})->name('rewards');
+
 // Fallback route for 404
 Route::fallback(function () {
     return view('errors.404');
 });
 
-// Auth routes (Laravel Breeze)
+// Auth routes
 require __DIR__.'/auth.php';
+// Add this BEFORE the auth routes
+Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');

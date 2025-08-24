@@ -1,0 +1,85 @@
+{{-- Sky Trekkers Exact Style Package Card - Responsive Version --}}
+@props(['package', 'index' => 0])
+
+@php
+    // Paragliding/Glider images - Simple numbered files
+    $images = [
+        '/storage/1.jpg', '/storage/2.jpg', '/storage/3.jpg',
+        '/storage/4.jpg', '/storage/5.jpg', '/storage/6.jpg'
+    ];
+    $selectedImage = $images[$index % count($images)];
+@endphp
+
+<div class="relative bg-white rounded-2xl overflow-hidden shadow-lg w-full max-w-sm mx-auto h-80 sm:h-96" 
+     data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+    
+    <div class="relative h-full">
+        <img src="{{ $package->image ? Storage::url($package->image) : $selectedImage }}" 
+             alt="{{ $package->name }}" 
+             class="w-full h-full object-cover">
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+        
+        {{-- Top badges --}}
+        <div class="absolute top-3 left-3 flex items-center text-white text-xs">
+            <svg class="w-3 h-3 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="hidden sm:inline">Bir Billing, Himachal Pradesh</span>
+            <span class="sm:hidden">Bir Billing</span>
+        </div>
+        
+        <div class="absolute top-3 right-3">
+            <span class="px-2 py-1 rounded-full text-xs font-medium text-white bg-green-500">Easy</span>
+        </div>
+        
+        {{-- Bottom content --}}
+        <div class="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+            @php
+                $badgeColor = 'bg-green-600';
+                $badgeText = 'Basic Course';
+                
+                if(stripos($package->name, 'intermediate') !== false || stripos($package->name, 'p3') !== false) {
+                    $badgeColor = 'bg-blue-600';
+                    $badgeText = 'Intermediate Course';
+                } elseif(stripos($package->name, 'advanced') !== false || stripos($package->name, 'p4') !== false) {
+                    $badgeColor = 'bg-purple-600';
+                    $badgeText = 'Advanced Course';
+                } elseif(stripos($package->name, 'tandem') !== false) {
+                    $badgeColor = 'bg-orange-600';
+                    $badgeText = 'Tandem Flight';
+                }
+            @endphp
+            
+            <div class="inline-block {{ $badgeColor }} px-2 sm:px-3 py-1 rounded-full text-xs font-medium text-white mb-2">
+                {{ $badgeText }}
+            </div>
+            
+            <h3 class="text-lg sm:text-xl font-bold text-white mb-2 line-clamp-2">{{ $package->name }}</h3>
+            
+            <div class="flex items-center text-white text-xs mb-3 opacity-90">
+                <svg class="w-3 h-3 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+                @php
+                    $duration = is_numeric($package->duration ?? null) ? (int)$package->duration : 2;
+                    $nights = $duration > 0 ? $duration - 1 : 1;
+                @endphp
+                {{ $duration }} Day(s) / {{ $nights }} Night(s)
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <span class="text-white text-xl sm:text-2xl font-black">₹{{ number_format($package->price) }}</span>
+                
+                <a href="{{ route('packages.show', $package) }}" 
+                   class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 flex items-center">
+                    <span class="hidden sm:inline">Enquire now</span>
+                    <span class="sm:hidden">Book</span>
+                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

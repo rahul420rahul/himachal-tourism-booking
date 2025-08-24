@@ -179,19 +179,35 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Customer Name:</span>
-                <span class="detail-value">{{ $booking->customer_name ?? 'N/A' }}</span>
+                <span class="detail-value">{{ $booking->guest_name ?? 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{ $booking->guest_email ?? 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span class="detail-value">{{ $booking->guest_phone ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Package:</span>
                 <span class="detail-value">{{ $booking->package->name ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Travel Date:</span>
-                <span class="detail-value">{{ $booking->travel_date ? \Carbon\Carbon::parse($booking->travel_date)->format('d M Y') : 'N/A' }}</span>
+                <span class="detail-label">Booking Date:</span>
+                <span class="detail-value">{{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M Y') : 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Time Slot:</span>
+                <span class="detail-value">{{ $booking->time_slot ?? 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Participants:</span>
+                <span class="detail-value">{{ $booking->participants ?? 'N/A' }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Total Amount:</span>
-                <span class="detail-value amount">₹{{ number_format($booking->total_amount ?? 0, 2) }}</span>
+                <span class="detail-value amount">₹{{ number_format($booking->final_amount ?? 0, 2) }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Payment Status:</span>
@@ -199,7 +215,7 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Payment ID:</span>
-                <span class="detail-value">{{ $booking->razorpay_payment_id ?? 'N/A' }}</span>
+                <span class="detail-value" style="font-size: 12px;">{{ $booking->razorpay_payment_id ?? 'N/A' }}</span>
             </div>
         </div>
 
@@ -211,7 +227,7 @@
         </div>
 
         <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
-            A confirmation email will be sent to {{ $booking->customer_email ?? 'your email address' }} shortly.
+            A confirmation email will be sent to {{ $booking->guest_email ?? 'your email address' }} shortly.
         </p>
     </div>
 </body>

@@ -34,13 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
-    'razorpay' => [
-        'key' => env('RAZORPAY_KEY_ID'),
-        'secret' => env('RAZORPAY_KEY_SECRET'),
-        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
-    ],
-
+'razorpay' => [
+    'key' => 'rzp_test_DrinLjJ538WZQi',  // Direct value for testing
+    'secret' => 'IB5gmzdvzbNOPpRdr0wfCRQJ',
+    'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
+],
 
 'openweather' => [
     'api_key' => env('OPENWEATHER_API_KEY'),

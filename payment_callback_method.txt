@@ -1,0 +1,48 @@
+Add this method to PaymentController.php:
+
+public function callback(Request $request)
+{
+    try {
+        $paymentId = $request->input('razorpay_payment_id');
+        $orderId = $request->input('razorpay_order_id');
+        $signature = $request->input('razorpay_signature');
+        $bookingId = $request->input('booking_id');
+        
+        // Find booking
+        $booking = Booking::findOrFail($bookingId);
+        
+        // Verify signature
+        $api = new Api($this->razorpayId, $this->razorpayKey);
+        
+        try {
+            $attributes = [
+                'razorpay_order_id' => $orderId,
+                'razorpay_payment_id' => $paymentId,
+                'razorpay_signature' => $signature
+            ];
+            
+            $api->utility->verifyPaymentSignature($attributes);
+            
+            // Update booking
+            $booking->update([
+                'razorpay_payment_id' => $paymentId,
+                'razorpay_signature' => $signature,
+                'payment_status' => 'partial', // Since it's advance payment
+                'status' => 'confirmed'
+            ]);
+            
+            return redirect()->route('bookings.show', $booking)
+                ->with('success', 'Payment successful! Your booking is confirmed.');
+                
+        } catch (\Exception $e) {
+            Log::error('Payment verification failed: ' . $e->getMessage());
+            return redirect()->route('bookings.show', $booking)
+                ->with('error', 'Payment verification failed. Please contact support.');
+        }
+        
+    } catch (\Exception $e) {
+        Log::error('Payment callback error: ' . $e->getMessage());
+        return redirect()->route('packages.index')
+            ->with('error', 'Payment processing failed.');
+    }
+}

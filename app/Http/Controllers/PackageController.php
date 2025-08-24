@@ -9,16 +9,56 @@ class PackageController extends Controller
 {
     public function index()
     {
-        $packages = Package::where('is_active', true)
-                          ->orderBy('featured', 'desc')
-                          ->orderBy('created_at', 'desc')
-                          ->paginate(12);
-                          
+        $packages = Package::where('is_active', true)->get();
         return view('packages.index', compact('packages'));
     }
-    
+
     public function show(Package $package)
     {
         return view('packages.show', compact('package'));
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('query', '');
+        $packages = Package::where('is_active', true)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get(['id', 'name', 'price', 'duration']);
+        
+        return response()->json($packages);
+    }
+
+    public function book(Package $package)
+    {
+        return redirect()->route('packages.show', $package)->with('scroll_to_booking', true);
+    }
+
+    public function store(Request $request)
+    {
+        // Implementation for storing package
+    }
+
+    public function create()
+    {
+        // Implementation for create form
+    }
+
+    public function edit(Package $package)
+    {
+        // Implementation for edit form
+    }
+
+    public function update(Request $request, Package $package)
+    {
+        // Implementation for updating package
+    }
+
+    public function destroy(Package $package)
+    {
+        // Implementation for deleting package
     }
 }

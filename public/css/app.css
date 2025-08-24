@@ -1,0 +1,38 @@
+
+/* Mobile Bottom Padding for Fixed Nav */
+@media (max-width: 1024px) {
+    body {
+        padding-bottom: 60px; /* For bottom navigation */
+        padding-top: 56px; /* For top navigation */
+    }
+}
+
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Hide desktop navigation */
+    .desktop-nav, nav.hidden.lg\\:block {
+        display: none !important;
+    }
+    
+    /* Mobile padding adjustments */
+    body {
+        padding-top: 56px !important;
+        padding-bottom: 64px !important;
+    }
+    
+    /* Hero text size adjustments */
+    .hero-section h1 {
+        font-size: 2.5rem !important;
+    }
+    
+    /* Package cards mobile optimization */
+    .package-card {
+        max-width: 100%;
+    }
+}
+
+/* Bottom nav hover effects */
+.bottom-nav-item:hover {
+    background-color: rgba(0,0,0,0.05);
+}

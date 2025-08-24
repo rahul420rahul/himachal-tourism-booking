@@ -18,7 +18,7 @@ class Package extends Model
         'short_description',
         'price',
         'discount_price',
-        'duration_days',
+        'duration',
         'max_participants',
         'inclusions',
         'exclusions',
@@ -77,6 +77,12 @@ class Package extends Model
         return $this->discount_price ?? $this->price;
     }
 
+    // Add method version for calculations
+    public function getEffectivePrice()
+    {
+        return $this->discount_price ?? $this->price;
+    }
+
     public function getDiscountPercentageAttribute()
     {
         if ($this->discount_price) {
@@ -105,7 +111,7 @@ class Package extends Model
     {
         return $this->requires_weather_check || 
                stripos($this->name, 'paragliding') !== false ||
-               stripos($name, 'flying') !== false;
+               stripos($this->name, 'flying') !== false; // FIXED: was $name, now $this->name
     }
 
     public function getAdvancePaymentAmountAttribute()
@@ -126,6 +132,92 @@ class Package extends Model
     public function scopeWeatherDependent($query)
     {
         return $query->where('requires_weather_check', true);
+    }
+
+    // NEW ADVANCE PAYMENT METHODS
+    
+    // Get advance payment percentage based on package type
+    public function getAdvancePaymentPercentage()
+    {
+        // Check if set in database first
+        if ($this->advance_payment_percentage > 0) {
+            return $this->advance_payment_percentage;
+        }
+
+        // Default rules based on package name/category
+        $packageName = strtolower($this->name);
+        
+        // Course packages - 50% advance for big courses
+        if (str_contains($packageName, 'course') || 
+            str_contains($packageName, 'training') ||
+            str_contains($packageName, 'basic') ||
+            str_contains($packageName, 'intermediate') ||
+            str_contains($packageName, 'advanced')) {
+            return 50; // 50% advance for courses
+        }
+        
+        // Tandem flights - ₹500 per person (calculate percentage)
+        if (str_contains($packageName, 'tandem')) {
+            $effectivePrice = $this->getEffectivePrice();
+            if ($effectivePrice > 0) {
+                $percentage = (500 / $effectivePrice) * 100;
+                return min($percentage, 50); // Max 50% advance
+            }
+            return 30; // Default 30% for tandem
+        }
+        
+        return 40; // Default 40% advance
+    }
+
+    // Calculate advance amount for given participants
+    public function calculateAdvanceAmount($participants = 1)
+    {
+        $totalPrice = $this->getEffectivePrice() * $participants;
+        $advancePercentage = $this->getAdvancePaymentPercentage();
+        
+        $advanceAmount = $totalPrice * ($advancePercentage / 100);
+        
+        // For tandem flights, ensure minimum ₹500 per person
+        if (str_contains(strtolower($this->name), 'tandem')) {
+            $minimumAdvance = 500 * $participants;
+            $advanceAmount = max($advanceAmount, $minimumAdvance);
+        }
+        
+        return round($advanceAmount, 2);
+    }
+
+    // Calculate remaining amount
+    public function calculateRemainingAmount($participants = 1)
+    {
+        $totalPrice = $this->getEffectivePrice() * $participants;
+        $advanceAmount = $this->calculateAdvanceAmount($participants);
+        
+        return round($totalPrice - $advanceAmount, 2);
+    }
+
+    // Check if package requires full payment upfront
+    public function requiresFullPayment()
+    {
+        // Small amount packages (less than ₹2000) - full payment
+        return $this->getEffectivePrice() < 2000;
+    }
+
+    // Get payment info for display
+    public function getPaymentInfo($participants = 1)
+    {
+        $totalPrice = $this->getEffectivePrice() * $participants;
+        $advanceAmount = $this->calculateAdvanceAmount($participants);
+        $remainingAmount = $this->calculateRemainingAmount($participants);
+        $requiresFullPayment = $this->requiresFullPayment();
+        
+        return [
+            'total_price' => $totalPrice,
+            'advance_amount' => $requiresFullPayment ? $totalPrice : $advanceAmount,
+            'remaining_amount' => $requiresFullPayment ? 0 : $remainingAmount,
+            'advance_percentage' => $requiresFullPayment ? 100 : $this->getAdvancePaymentPercentage(),
+            'requires_full_payment' => $requiresFullPayment,
+            'payment_type' => $requiresFullPayment ? 'full' : 'advance'
+        ];
     }
 
     // Slug Auto-Generation
