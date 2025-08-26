@@ -1,0 +1,15 @@
+import './bootstrap';
+import Alpine from 'alpinejs';
+
+window.Alpine = Alpine;
+Alpine.start();
+
+// Initialize any global variables
+let scrolled = false;
+
+// Handle scroll events if needed
+window.addEventListener('scroll', function() {
+    scrolled = window.scrollY > 50;
+});
+
+console.log('App.js loaded successfully');

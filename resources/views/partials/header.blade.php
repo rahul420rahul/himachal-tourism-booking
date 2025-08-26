@@ -422,5 +422,4 @@
         <a href="#" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium text-gray-700 transition-colors duration-300">Group Booking</a>
       </div>
     </div>
-  </div>
 </nav>

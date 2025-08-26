@@ -1,0 +1,27 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+
+const BookingApp = () => {
+    // Yahan pe wo sara React code daal de jo currently app.js mein hai
+    // Main sirf structure de raha hun, tu copy kar lena app.js se
+    
+    const [step, setStep] = React.useState(1);
+    const [loading, setLoading] = React.useState(false);
+    
+    return (
+        <div className="container mx-auto p-4">
+            <h1>Booking System</h1>
+            {/* Your booking components here */}
+        </div>
+    );
+};
+
+// Mount the React app
+document.addEventListener('DOMContentLoaded', function() {
+    const bookingRoot = document.getElementById('react-booking-root');
+    if (bookingRoot) {
+        const root = createRoot(bookingRoot);
+        root.render(<BookingApp />);
+        console.log('React booking app mounted successfully');
+    }
+});

@@ -1,0 +1,507 @@
+import './bootstrap';
+import Alpine from 'alpinejs';
+
+// Initialize Alpine
+window.Alpine = Alpine;
+
+// Alpine.js plugins and configurations
+Alpine.start();
+
+// Custom JavaScript functionality
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Initialize loading state management
+    initializeLoadingStates();
+    
+    // Initialize image lazy loading
+    initializeLazyLoading();
+    
+    // Initialize smooth scrolling
+    initializeSmoothScrolling();
+    
+    // Initialize form enhancements
+    initializeFormEnhancements();
+    
+    // Initialize mobile menu functionality
+    initializeMobileMenu();
+    
+    // Initialize alert auto-hide
+    initializeAlertSystem();
+    
+    // Initialize search functionality
+    initializeSearch();
+    
+    // Initialize performance optimizations
+    initializePerformanceOptimizations();
+});
+
+// Loading state management
+function initializeLoadingStates() {
+    // Add loading class to body during page load
+    document.body.classList.add('loading');
+    
+    // Remove loading class when everything is ready
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            document.body.classList.remove('loading');
+            document.body.classList.add('loaded');
+        }, 100);
+    });
+    
+    // Form submission loading states
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = originalText + ' <span class="loading-spinner-small ml-2"></span>';
+                
+                // Re-enable after timeout (fallback)
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, 10000);
+            }
+        });
+    });
+}
+
+// Image lazy loading with IntersectionObserver
+function initializeLazyLoading() {
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                        
+                        // Handle loading error
+                        img.addEventListener('error', function() {
+                            this.src = '/images/placeholder.jpg'; // Fallback image
+                        });
+                    }
+                }
+            });
+        }, {
+            rootMargin: '50px 0px',
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    } else {
+        // Fallback for older browsers
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            img.src = img.dataset.src;
+        });
+    }
+}
+
+// Smooth scrolling for anchor links
+function initializeSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                const headerOffset = 80;
+                const elementPosition = target.offsetTop;
+                const offsetPosition = elementPosition - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Update focus for accessibility
+                target.focus({ preventScroll: true });
+            }
+        });
+    });
+}
+
+// Form enhancements
+function initializeFormEnhancements() {
+    // Real-time validation
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+        field.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        field.addEventListener('input', function() {
+            if (this.classList.contains('border-red-500')) {
+                validateField(this);
+            }
+        });
+    });
+    
+    // Auto-resize textareas
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+}
+
+// Field validation function
+function validateField(field) {
+    const value = field.value.trim();
+    const isRequired = field.hasAttribute('required');
+    const type = field.type;
+    const pattern = field.pattern;
+    
+    let isValid = true;
+    let errorMessage = '';
+    
+    // Required field validation
+    if (isRequired && !value) {
+        isValid = false;
+        errorMessage = 'This field is required';
+    }
+    
+    // Email validation
+    if (type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            isValid = false;
+            errorMessage = 'Please enter a valid email address';
+        }
+    }
+    
+    // Phone validation
+    if (type === 'tel' && value) {
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+            isValid = false;
+            errorMessage = 'Please enter a valid phone number';
+        }
+    }
+    
+    // Pattern validation
+    if (pattern && value) {
+        const regex = new RegExp(pattern);
+        if (!regex.test(value)) {
+            isValid = false;
+            errorMessage = 'Please enter a valid value';
+        }
+    }
+    
+    // Update field appearance
+    if (isValid) {
+        field.classList.remove('border-red-500');
+        field.classList.add('border-green-500');
+    } else {
+        field.classList.remove('border-green-500');
+        field.classList.add('border-red-500');
+    }
+    
+    // Show/hide error message
+    let errorElement = field.parentNode.querySelector('.error-message');
+    if (!isValid && errorMessage) {
+        if (!errorElement) {
+            errorElement = document.createElement('p');
+            errorElement.className = 'error-message text-red-500 text-sm mt-1';
+            field.parentNode.appendChild(errorElement);
+        }
+        errorElement.textContent = errorMessage;
+    } else if (errorElement) {
+        errorElement.remove();
+    }
+    
+    return isValid;
+}
+
+// Mobile menu functionality
+function initializeMobileMenu() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+        
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        });
+    }
+}
+
+// Alert system
+function initializeAlertSystem() {
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+        document.querySelectorAll('.flash-message').forEach(alert => {
+            const closeBtn = alert.querySelector('button');
+            if (closeBtn) {
+                closeBtn.click();
+            } else {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            }
+        });
+    }, 5000);
+}
+
+// Search functionality
+function initializeSearch() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(function() {
+            const query = this.value.trim();
+            if (query.length > 2) {
+                performSearch(query);
+            } else {
+                clearSearchResults();
+            }
+        }, 300));
+    }
+}
+
+// Search function
+function performSearch(query) {
+    // This would typically make an AJAX request to your search endpoint
+    console.log('Searching for:', query);
+    
+    // Example implementation:
+    // fetch(`/search?q=${encodeURIComponent(query)}`)
+    //     .then(response => response.json())
+    //     .then(data => displaySearchResults(data))
+    //     .catch(error => console.error('Search error:', error));
+}
+
+// Clear search results
+function clearSearchResults() {
+    const resultsContainer = document.getElementById('search-results');
+    if (resultsContainer) {
+        resultsContainer.innerHTML = '';
+        resultsContainer.classList.add('hidden');
+    }
+}
+
+// Performance optimizations
+function initializePerformanceOptimizations() {
+    // Preload critical resources
+    const criticalResources = [
+        '/storage/image.png',
+        '/favicon.ico'
+    ];
+    
+    criticalResources.forEach(resource => {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = resource;
+        document.head.appendChild(link);
+    });
+    
+    // Optimize images
+    document.querySelectorAll('img').forEach(img => {
+        // Add loading attribute for native lazy loading
+        if (!img.hasAttribute('loading')) {
+            img.setAttribute('loading', 'lazy');
+        }
+        
+        // Add error handling
+        img.addEventListener('error', function() {
+            if (!this.src.includes('placeholder')) {
+                this.src = '/images/placeholder.jpg';
+            }
+        });
+    });
+    
+    // Connection optimization
+    if ('connection' in navigator) {
+        const connection = navigator.connection;
+        if (connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g') {
+            // Disable animations for slow connections
+            document.body.classList.add('reduce-motion');
+        }
+    }
+}
+
+// Utility Functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
+
+// Global functions for Blade templates
+window.showAlert = function(message, type = 'info', duration = 3000) {
+    const alertDiv = document.createElement('div');
+    const alertClasses = {
+        'success': 'bg-green-500 text-white border-green-600',
+        'error': 'bg-red-500 text-white border-red-600',
+        'warning': 'bg-yellow-500 text-black border-yellow-600',
+        'info': 'bg-blue-500 text-white border-blue-600'
+    };
+    
+    alertDiv.className = `alert fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border-l-4 ${alertClasses[type] || alertClasses.info} animate-fade-in`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button class="ml-4 text-current hover:opacity-75" onclick="this.parentElement.parentElement.remove()">
+                &times;
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after duration
+    setTimeout(() => {
+        alertDiv.style.opacity = '0';
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 300);
+    }, duration);
+};
+
+window.formatCurrency = function(amount, currency = 'INR') {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+};
+
+window.formatDate = function(date, options = {}) {
+    const defaultOptions = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    };
+    
+    return new Intl.DateTimeFormat('en-IN', { ...defaultOptions, ...options }).format(new Date(date));
+};
+
+window.copyToClipboard = async function(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        showAlert('Copied to clipboard!', 'success', 2000);
+    } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showAlert('Copied to clipboard!', 'success', 2000);
+    }
+};
+
+// Form validation helper
+window.validateForm = function(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return false;
+
+    const fields = form.querySelectorAll('input, textarea, select');
+    let isValid = true;
+
+    fields.forEach(field => {
+        if (!validateField(field)) {
+            isValid = false;
+        }
+    });
+
+    return isValid;
+};
+
+// Global error handler
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+    
+    // Only show user-friendly message in production
+    if (window.location.hostname !== 'localhost') {
+        showAlert('Something went wrong. Please try again.', 'error');
+    }
+});
+
+// Unhandled promise rejection handler
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled Promise Rejection:', e.reason);
+    
+    // Only show user-friendly message in production
+    if (window.location.hostname !== 'localhost') {
+        showAlert('Network error. Please check your connection.', 'error');
+    }
+});
+
+// Performance monitoring
+if ('performance' in window) {
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            const perfData = performance.getEntriesByType('navigation')[0];
+            const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+            
+            // Log performance metrics (could send to analytics)
+            console.log('Page Load Time:', loadTime + 'ms');
+            
+            // Show warning for slow loading
+            if (loadTime > 3000) {
+                console.warn('Page loaded slowly:', loadTime + 'ms');
+            }
+        }, 0);
+    });
+}
+
+// Debug mobile menu
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileButton = document.querySelector('button[aria-label="Toggle mobile menu"]');
+    if (mobileButton) {
+        console.log('Mobile button found');
+        mobileButton.addEventListener('click', function(e) {
+            console.log('Mobile button clicked');
+            // Manual menu toggle for testing
+            const mobileMenu = document.querySelector('.fixed.top-0.right-0.w-80');
+            if (mobileMenu) {
+                mobileMenu.classList.toggle('hidden');
+            }
+        });
+    } else {
+        console.log('Mobile button not found');
+    }
+});

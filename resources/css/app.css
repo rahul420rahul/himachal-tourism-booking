@@ -1,3 +1,4 @@
+@import "./mobile.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -352,4 +353,33 @@ img[data-src].loaded {
 
 .alert-info {
     @apply bg-blue-50 border-blue-500 text-blue-700;
+}
+/* Notification Popup Fix */
+.notification-popup:not(.user-clicked),
+[x-show]:not(.user-clicked),
+[role="dialog"]:not(.user-clicked) {
+    display: none !important;
+}
+/* Debug CSS */
+
+/* Debug CSS */
+
+/* Force mobile button visibility */
+@media (max-width: 1024px) {
+  .lg\:hidden button[aria-label="Toggle mobile menu"] {
+    background-color: #f3f4f6 !important;
+    border: 1px solid #d1d5db !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+  }
+  
+  .lg\:hidden button[aria-label="Toggle mobile menu"] svg {
+    display: block !important;
+    color: #374151 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
 }

@@ -14,6 +14,11 @@ use App\Notifications\BookingStatusChanged;
 
 class BookingController extends Controller
 {
+    public function create()
+    {
+        $packages = \App\Models\Package::where("is_active", true)->get();
+        return view("bookings.create", compact("packages"));
+    }
     public function store(Request $request)
     {
         Log::info('=== BOOKING DEBUG START ===');
@@ -85,6 +90,25 @@ class BookingController extends Controller
             // Create booking with calculated amounts
             $booking = Booking::create([
                 'booking_number' => 'BIR' . date('Ymd') . str_pad(random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
+                'final_amount' => $totalAmount,
+                'advance_amount' => $advanceAmount,
+                'pending_amount' => $pendingAmount,
+                'total_amount' => $totalAmount,
+                'participants' => $totalParticipants,
+                'number_of_people' => $totalParticipants,
+                'time_slot' => '10:00',
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'booking_number' => 'BIR' . date('Ymd') . str_pad(random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
+                'final_amount' => $totalAmount,
+                'advance_amount' => $advanceAmount,
+                'pending_amount' => $pendingAmount,
+                'total_amount' => $totalAmount,
+                'participants' => $totalParticipants,
+                'number_of_people' => $totalParticipants,
+                'time_slot' => '10:00',
+                'status' => 'pending',
+                'payment_status' => 'pending',
                 'user_id' => $userId,
                 'package_id' => $validatedData['package_id'],
                 'guest_name' => $validatedData['guest_name'],

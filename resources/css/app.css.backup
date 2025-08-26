@@ -1,0 +1,386 @@
+@import "./mobile.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* FOUC Prevention */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Custom Components */
+@layer components {
+    .btn-primary {
+        @apply bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    }
+    
+    .btn-secondary {
+        @apply bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2;
+    }
+    
+    .btn-outline {
+        @apply border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    }
+    
+    .card {
+        @apply bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300 border border-gray-100;
+    }
+    
+    .card-hover {
+        @apply hover:shadow-xl hover:transform hover:scale-105;
+    }
+    
+    .gradient-bg {
+        @apply bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600;
+    }
+    
+    .glass-effect {
+        @apply bg-white/10 backdrop-blur-md border border-white/20;
+    }
+    
+    .gradient-text {
+        @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    }
+    
+    .nav-link {
+        @apply text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 relative;
+    }
+    
+    .nav-link.active {
+        @apply text-blue-600 font-semibold;
+    }
+    
+    .nav-link::after {
+        content: '';
+        @apply absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transform scale-x-0 transition-transform duration-300;
+    }
+    
+    .nav-link:hover::after, 
+    .nav-link.active::after {
+        @apply transform scale-x-100;
+    }
+}
+
+/* Custom Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+.animate-slide-left {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-slide-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-spinner-small {
+    @apply inline-block w-4 h-4 border-2 border-white border-r-transparent rounded-full animate-spin;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Line Clamp Utilities */
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Focus States */
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+/* Hover Effects */
+.hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+.hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-lg;
+}
+
+/* Image Lazy Loading */
+img[data-src] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+img[data-src].loaded {
+    opacity: 1;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .btn-primary,
+    .btn-secondary,
+    .btn-outline {
+        @apply px-4 py-2 text-sm;
+    }
+    
+    .card {
+        @apply rounded-xl;
+    }
+    
+    h1 {
+        @apply text-2xl;
+    }
+    
+    h2 {
+        @apply text-xl;
+    }
+    
+    h3 {
+        @apply text-lg;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+        color: black;
+        background: white;
+    }
+    
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* Dark Mode Support (for future) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-white: #1f2937;
+        --bg-light: #111827;
+        --text-dark: #f9fafb;
+        --text-light: #d1d5db;
+        --border-light: #374151;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .btn-primary {
+        @apply border-2 border-black;
+    }
+    
+    .card {
+        @apply border-2 border-gray-800;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .animate-float,
+    .animate-glow {
+        animation: none;
+    }
+}
+
+/* Custom Utilities */
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.backdrop-blur-xs {
+    backdrop-filter: blur(2px);
+}
+
+/* Form Enhancements */
+.form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+}
+
+.form-input:invalid {
+    @apply border-red-500;
+}
+
+.form-input:valid {
+    @apply border-green-500;
+}
+
+/* Alert Components */
+.alert {
+    @apply px-4 py-3 rounded-lg border-l-4 mb-4;
+}
+
+.alert-success {
+    @apply bg-green-50 border-green-500 text-green-700;
+}
+
+.alert-error {
+    @apply bg-red-50 border-red-500 text-red-700;
+}
+
+.alert-warning {
+    @apply bg-yellow-50 border-yellow-500 text-yellow-700;
+}
+
+.alert-info {
+    @apply bg-blue-50 border-blue-500 text-blue-700;
+}
+/* Notification Popup Fix */
+.notification-popup:not(.user-clicked),
+[x-show]:not(.user-clicked),
+[role="dialog"]:not(.user-clicked) {
+    display: none !important;
+}
+/* Debug CSS */
+
+/* Debug CSS */
+
+/* Force mobile button visibility */
+@media (max-width: 1024px) {
+  .lg\:hidden button[aria-label="Toggle mobile menu"] {
+    background-color: #f3f4f6 !important;
+    border: 1px solid #d1d5db !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+  }
+  
+  .lg\:hidden button[aria-label="Toggle mobile menu"] svg {
+    display: block !important;
+    color: #374151 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+@import './mobile.css';

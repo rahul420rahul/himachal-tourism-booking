@@ -1,29 +1,35 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    {{-- Hero Section --}}
-    <div class="relative h-96 bg-gradient-to-r from-blue-600 to-green-500">
-        <div class="absolute inset-0 bg-black/40"></div>
-        <div class="container mx-auto px-4 h-full flex items-center relative z-10">
-            <div class="text-white">
-                <nav class="text-sm mb-4">
-                    <a href="/" class="hover:underline">Home</a>
-                    <span class="mx-2">/</span>
-                    <a href="/packages" class="hover:underline">Packages</a>
-                    <span class="mx-2">/</span>
-                    <span>{{ $package->name }}</span>
-                </nav>
-                <h1 class="text-4xl font-bold mb-4">{{ $package->name }}</h1>
-                <p class="text-xl opacity-90 max-w-2xl">{{ $package->description }}</p>
-            </div>
-        </div>
+<div class="container mx-auto px-4">
+    <nav class="mb-4">
+        <a href="/">Home</a> / 
+        <a href="/packages">Packages</a> / 
+        <span>{{ $package->name }}</span>
+    </nav>
+    
+    <h1 class="text-3xl font-bold mb-4">{{ $package->name }}</h1>
+    
+    <!-- Direct Link Button -->
+    <a href="/booking-new/{{ $package->id }}" 
+       class="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600">
+        Book Now
+    </a>
+    
+    <p class="mt-4 text-gray-600">{{ $package->description }}</p>
+    
+    <!-- Center section -->
+    <div class="text-center mt-12 p-8 bg-gray-50 rounded-lg">
+        <h2 class="text-2xl font-bold mb-4">Ready for Adventure?</h2>
+        <p class="mb-4">Book your {{ $package->name }} experience now!</p>
+        
+        <!-- Second Direct Link Button -->
+        <a href="/booking-new/{{ $package->id }}" 
+           class="inline-block bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-600">
+            Book Now
+        </a>
+        
+        <p class="mt-2 text-gray-600">Price: ₹{{ number_format($package->price) }}</p>
     </div>
-
-    {{-- Dynamic Package Content --}}
-    @includeIf('packages.partials.' . $package->slug)
-
-    {{-- Common Booking Form --}}
-    @include('packages.partials.booking-form')
 </div>
 @endsection

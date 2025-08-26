@@ -1,0 +1,53 @@
+import React, { useState } from 'react';
+import { Calendar, Users, Phone, Mail } from 'lucide-react';
+
+const BookingWidget = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        date: '',
+        adults: 1,
+        children: 0
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log('Booking data:', formData);
+        // API call yahan
+    };
+
+    return (
+        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">Book Your Paragliding Adventure</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                        type="text"
+                        placeholder="Your Name"
+                        className="p-3 border rounded-lg"
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        className="p-3 border rounded-lg"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    />
+                </div>
+                
+                <button 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-bold hover:shadow-lg transition"
+                >
+                    Book Now
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default BookingWidget;

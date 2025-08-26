@@ -1,4 +1,5 @@
 <?php
+use IlluminateHttpRequest;
 
 namespace App\Http\Controllers;
 
@@ -32,6 +33,11 @@ class PackageController extends Controller
         return response()->json($packages);
     }
 
+    public function book(Package $package)
+    {
+        return redirect()->route('packages.show', $package)->with('scroll_to_booking', true);
+    }
+
     public function store(Request $request)
     {
         // Implementation for storing package
@@ -58,7 +64,11 @@ class PackageController extends Controller
     }
 }
 
-    public function book(Package $package)
+    public function search(Request $request)
     {
-        return redirect()->route('packages.show', $package)->with('scroll_to_booking', true);
+        $packages = Package::where('is_active', true)
+            ->select('id', 'name', 'price', 'duration', 'description')
+            ->get();
+            
+        return response()->json($packages);
     }

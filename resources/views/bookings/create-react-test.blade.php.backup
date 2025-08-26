@@ -1,0 +1,27 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">React Booking Test</h1>
+    <div id="root"></div>
+</div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script>
+const { useState } = React;
+
+function BookingApp() {
+    const [message, setMessage] = useState('React is working!');
+    return React.createElement('div', {className: 'bg-white p-6 rounded-lg shadow'},
+        React.createElement('h2', {className: 'text-2xl mb-4'}, message),
+        React.createElement('button', {
+            className: 'bg-blue-500 text-white px-4 py-2 rounded',
+            onClick: () => setMessage('Button clicked!')
+        }, 'Test React')
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(BookingApp));
+</script>
+@endsection

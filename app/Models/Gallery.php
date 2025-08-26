@@ -4,65 +4,57 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Gallery extends Model
 {
     use HasFactory;
 
-protected $fillable = [
-    'title',
-    'description', 
-    'image_path',
-    'thumbnail_path',
-    'type',
-    'category',
-    'sort_order',
-    'is_active',
-    'tags'
-];
-    protected $casts = [
-        'sort_order' => 'integer',
-        'is_featured' => 'boolean',
+    protected $table = 'galleries';
+    
+    protected $fillable = [
+        'user_id',
+        'flight_log_id',
+        'title',
+        'description',
+        'file_path',
+        'type',
+        'category',
+        'is_public'
     ];
 
-    // Relationships
-    public function package(): BelongsTo
+    protected $casts = [
+        'is_public' => 'boolean'
+    ];
+
+    public function user()
     {
-        return $this->belongsTo(Package::class);
+        return $this->belongsTo(User::class);
     }
 
-    // Helper methods
-    public function getImageUrlAttribute()
+    public function flightLog()
     {
-        return asset('storage/' . $this->image_path);
+        return $this->belongsTo(FlightLog::class);
     }
 
-    public function getThumbnailAttribute()
+    // Helper method to get full URL
+    public function getFileUrlAttribute()
     {
-        // Assuming you'll implement image resizing
-        $pathInfo = pathinfo($this->image_path);
-        return asset('storage/' . $pathInfo['dirname'] . '/thumbs/' . $pathInfo['basename']);
+        if (str_starts_with($this->file_path, 'http')) {
+            return $this->file_path;
+        }
+        return Storage::url($this->file_path);
     }
 
-    // Scopes
-    public function scopeFeatured($query)
+    // Helper method to check if it's an image
+    public function getIsImageAttribute()
     {
-        return $query->where('is_featured', true);
+        return in_array($this->type, ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp']);
     }
 
-    public function scopeByCategory($query, $category)
+    // Helper method to check if it's a video
+    public function getIsVideoAttribute()
     {
-        return $query->where('category', $category);
-    }
-
-    public function scopeForPackage($query, $packageId)
-    {
-        return $query->where('package_id', $packageId);
-    }
-
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('sort_order', 'asc');
+        return in_array($this->type, ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm']);
     }
 }
