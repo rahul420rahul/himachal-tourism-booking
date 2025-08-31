@@ -1,50 +1,46 @@
-/* Mobile Specific Styles */
+/* Mobile First Optimizations */
 @media (max-width: 768px) {
-    .hero-section {
-        padding-top: 80px;
-        min-height: 60vh;
-    }
-    
-    .package-card {
-        border-radius: 12px;
-        margin: 8px;
-    }
-    
-    .booking-form {
-        padding: 16px;
-        border-radius: 16px;
-    }
-    
-    /* iOS Safe Areas */
-    @supports (padding: max(0px)) {
-        .safe-area-top {
-            padding-top: max(16px, env(safe-area-inset-top));
-        }
-        
-        .safe-area-bottom {
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
-        }
-    }
+  /* Remove heavy animations */
+  * {
+    animation-duration: 0.3s !important;
+  }
+  
+  /* Fix hero height */
+  .hero-section {
+    height: 50vh !important;
+    min-height: 350px;
+  }
+  
+  /* Fix preloader */
+  .preloader {
+    background: #2c3e50 !important;
+  }
+  
+  .preloader * {
+    animation: none !important;
+  }
+  
+  /* Bottom nav spacing */
+  body {
+    padding-bottom: 64px;
+  }
+  
+  /* Text sizes */
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.3rem !important; }
+  p { font-size: 0.9rem !important; }
+  
+  /* Button sizes */
+  .btn, button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
 }
 
-/* Bottom Navigation Active State */
-.nav-active svg {
-    transform: scale(1.1);
-}
-
-.nav-active span {
-    font-weight: 600;
-}
-
-/* Smooth Scroll */
-html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent Text Selection on Buttons */
-button, a {
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+/* Landscape mode */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero-section {
+    height: 80vh !important;
+  }
 }

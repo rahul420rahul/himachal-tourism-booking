@@ -1,0 +1,24 @@
+/* Mobile optimization */
+@media (max-width: 768px) {
+  /* Hero section height fix */
+  .hero-section {
+    height: 50vh !important;
+    min-height: 350px;
+    max-height: 450px;
+  }
+  
+  /* Preloader optimization */
+  .preloader * {
+    animation: none !important;
+  }
+  
+  /* Bottom navigation spacing */
+  body {
+    padding-bottom: 64px;
+  }
+  
+  /* Font size adjustments */
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  p { font-size: 0.9rem !important; }
+}

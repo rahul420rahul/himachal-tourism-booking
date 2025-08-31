@@ -55,3 +55,9 @@ class VerifyCsrfToken extends Middleware
         return $token;
     }
 }
+   protected $except = [
+       'api/*',
+       'payments/*',
+       'bookings',
+       'booking-success/*'
+   ];

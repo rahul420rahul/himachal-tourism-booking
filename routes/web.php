@@ -14,6 +14,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\BookingSuccessController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,14 @@ Route::get('/forecast/{city?}', [WeatherController::class, 'getForecast'])->name
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/bookings/{id}/guest', [BookingController::class, 'guestShow'])->name('bookings.guest');
 Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+
+// React Booking Route - Single definition
+Route::get('/booking/{package_id}', function ($package_id) {
+    return view('booking.react', ['package_id' => $package_id]);
+})->name('booking.show');
+
+// Booking success page - Single definition
+Route::get('/booking-success/{id}', [BookingSuccessController::class, 'show'])->name('booking.success');
 
 // REACT BOOKING ROUTE - PROPERLY CONFIGURED
 Route::get('/booking-new/{id?}', function ($id = null) {
@@ -58,7 +67,6 @@ Route::post('/payments/callback', [PaymentController::class, 'handleCallback'])-
 Route::post('/payments/verify', [PaymentController::class, 'verifyPayment'])->name('payments.verify');
 Route::post('/verify-payment', [PaymentController::class, 'verifyPayment'])->name('verify.payment');
 Route::post('/payments/failure', [PaymentController::class, 'handleFailure'])->name('payments.failure');
-Route::get('/bookings/{booking}/success', [PaymentController::class, 'success'])->name('bookings.success');
 
 // Contact routes
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
@@ -91,6 +99,10 @@ Route::prefix('api')->group(function () {
     Route::get('/packages', [\App\Http\Controllers\Api\ReactBookingController::class, 'getPackages'] ?? [PackageController::class, 'index']);
     Route::get('/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('api.time-slots');
     Route::get('/weather-check', [BookingController::class, 'checkWeather'])->name('api.weather-check');
+    
+    // Booking API routes
+    Route::post('/bookings', [\App\Http\Controllers\Api\BookingController::class, 'store']);
+    Route::get('/my-bookings', [\App\Http\Controllers\Api\BookingController::class, 'getMyBookings']);
 });
 
 // CORS preflight requests for payment routes
@@ -114,6 +126,7 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard Sub-routes
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::post('/certificates/store', [DashboardController::class, 'uploadCertificate'])->name('certificates.store');
         Route::get('/certificates', [DashboardController::class, 'certificates'])->name('certificates');
         Route::get('/certificates/{certificate}/download', [DashboardController::class, 'downloadCertificate'])->name('certificate.download');
         Route::get('/gallery', [DashboardController::class, 'gallery'])->name('gallery');
@@ -204,6 +217,9 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// My Bookings (authenticated)
+Route::get('/my-bookings', [\App\Http\Controllers\BookingController::class, 'myBookings'])->name('bookings.my')->middleware('auth');
+
 // Guest Invoice View (Public access with token)
 Route::get('/invoices/{invoice}/view/{token}', [InvoiceController::class, 'publicView'])->name('invoices.public');
 Route::get('/invoices/{invoice}/download/{token}', [InvoiceController::class, 'publicDownload'])->name('invoices.public.download');
@@ -251,32 +267,5 @@ require __DIR__.'/auth.php';
 if (file_exists(__DIR__.'/web_react_booking.php')) {
     require __DIR__.'/web_react_booking.php';
 }
-// React Booking Route
-Route::get('/booking/{package_id}', function ($package_id) {
-    return view('booking.react', ['package_id' => $package_id]);
-})->name('booking.show');
-
-// React Booking Route with proper handling
-Route::get('/booking/{package_id}', function ($package_id) {
-    return view('booking.react', ['package_id' => $package_id]);
-})->name('booking.show');
-
-Route::get('/bookings/{booking}/success', function ($booking) {
-    $booking = \App\Models\Booking::findOrFail($booking);
-    return view('booking.success', compact('booking'));
-})->name('booking.success');
-
-Route::get('/bookings/{booking}/success', function ($id) {
-    $booking = \App\Models\Booking::with('package')->findOrFail($id);
-    return view('booking.success', compact('booking'));
-})->name('booking.success');
-Route::get('/my-bookings', function() { return view('bookings.my-bookings'); })->name('bookings.my')->middleware('web');
-
-// Booking API routes
-Route::post('/api/bookings', [App\Http\Controllers\Api\BookingController::class, 'store']);
-Route::get('/api/my-bookings', [App\Http\Controllers\Api\BookingController::class, 'getMyBookings']);
-
-
-// Booking success page
-Route::get('/booking-success/{id}', [App\Http\Controllers\BookingSuccessController::class, 'show'])->name('booking.success');
-
+// Add these routes in the dashboard prefix group (after line 128)
+Route::post('/certificates/store', [DashboardController::class, 'uploadCertificate'])->name('certificates.store');

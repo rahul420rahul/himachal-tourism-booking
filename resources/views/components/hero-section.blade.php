@@ -1,5 +1,5 @@
-<!-- Hero Section Component (Clean Version) -->
-<section class="relative w-full h-[75vh] overflow-hidden hero-section" x-data="{ muted: true, showLine1: false, showLine2: false, showLine3: false, showDesc: false, showBtn: false }" 
+<!-- Hero Section Component (Mobile Optimized) -->
+<section class="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[75vh] overflow-hidden hero-section" x-data="{ muted: true, showLine1: false, showLine2: false, showLine3: false, showDesc: false, showBtn: false }" 
 x-init="
 setTimeout(() => showLine1 = true, 800);
 setTimeout(() => showLine2 = true, 1400); 
@@ -22,8 +22,8 @@ setTimeout(() => showBtn = true, 3200);
         Your browser does not support the video tag.
     </video>
 
-    <!-- Floating particles effect -->
-    <div class="absolute inset-0 z-5">
+    <!-- Floating particles effect - Hidden on mobile -->
+    <div class="absolute inset-0 z-5 hidden sm:block">
         <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
         <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
         <div class="particle" style="left: 30%; animation-delay: 1s;"></div>
@@ -35,17 +35,17 @@ setTimeout(() => showBtn = true, 3200);
         <div class="particle" style="left: 90%; animation-delay: 4s;"></div>
     </div>
 
-    <!-- Sound Toggle Button - FIXED -->
+    <!-- Sound Toggle Button -->
     <button
         @click="muted = !muted; $refs.video.muted = muted"
-        class="absolute top-4 right-4 z-30 w-12 h-12 bg-black/50 hover:bg-orange-600/80 backdrop-blur-sm text-white rounded-full transition-all transform hover:scale-110 flex items-center justify-center"
+        class="absolute top-2 right-2 sm:top-4 sm:right-4 z-30 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-black/50 hover:bg-orange-600/80 backdrop-blur-sm text-white rounded-full transition-all transform hover:scale-110 flex items-center justify-center"
         aria-label="Toggle sound"
     >
-        <svg x-show="muted" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg x-show="muted" class="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
         </svg>
-        <svg x-show="!muted" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg x-show="!muted" class="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
         </svg>
@@ -54,12 +54,12 @@ setTimeout(() => showBtn = true, 3200);
     <!-- Gradient Overlay -->
     <div class="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent z-10"></div>
 
-    <!-- Content -->
-    <div class="relative z-20 flex items-center h-full px-8 md:px-16">
+    <!-- Content - Mobile Optimized -->
+    <div class="relative z-20 flex items-center h-full px-3 sm:px-6 md:px-12 lg:px-16">
         <div class="text-left text-white max-w-3xl">
             <!-- Main Heading - First Line -->
-            <div class="overflow-hidden mb-2">
-                <span class="block text-5xl md:text-7xl font-black text-white transition-all duration-700 ease-out"
+            <div class="overflow-hidden mb-0 sm:mb-1">
+                <span class="block text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white transition-all duration-700 ease-out"
                     style="text-shadow: 1px 1px 3px rgba(0,0,0,0.4);"
                     :class="showLine1 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
                     READY TO
@@ -67,8 +67,8 @@ setTimeout(() => showBtn = true, 3200);
             </div>
 
             <!-- Main Heading - Second Line (FLY) -->
-            <div class="overflow-hidden mb-2">
-                <span class="block text-6xl md:text-8xl font-black text-orange-400 bg-gradient-to-r from-orange-400 via-yellow-400 to-red-500 bg-clip-text text-transparent transition-all duration-700 ease-out animate-breathe"
+            <div class="overflow-hidden mb-0 sm:mb-1">
+                <span class="block text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-orange-400 bg-gradient-to-r from-orange-400 via-yellow-400 to-red-500 bg-clip-text text-transparent transition-all duration-700 ease-out animate-breathe"
                     style="filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));"
                     :class="showLine2 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
                     FLY
@@ -76,17 +76,17 @@ setTimeout(() => showBtn = true, 3200);
             </div>
 
             <!-- Main Heading - Third Line -->
-            <div class="overflow-hidden mb-8">
-                <span class="block text-4xl md:text-6xl font-light text-gray-100 transition-all duration-700 ease-out"
+            <div class="overflow-hidden mb-2 sm:mb-4 md:mb-6 lg:mb-8">
+                <span class="block text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-light text-gray-100 transition-all duration-700 ease-out"
                     style="text-shadow: 1px 1px 3px rgba(0,0,0,0.4);"
                     :class="showLine3 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
                     HIGHER?
                 </span>
             </div>
 
-            <!-- Subtitle -->
-            <div class="mb-8">
-                <p class="text-lg md:text-xl text-white font-medium leading-relaxed max-w-2xl transition-all duration-700 ease-out"
+            <!-- Subtitle - Hidden on very small screens -->
+            <div class="mb-3 sm:mb-6 hidden xs:block">
+                <p class="text-xs sm:text-sm md:text-base lg:text-xl text-white font-medium leading-relaxed max-w-2xl transition-all duration-700 ease-out"
                     style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"
                     :class="showDesc ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'">
                     Break free from the ground and embrace the endless sky. Your ultimate paragliding adventure 
@@ -94,27 +94,26 @@ setTimeout(() => showBtn = true, 3200);
                 </p>
             </div>
 
-            <!-- CTA Button -->
+            <!-- CTA Button - Smaller on mobile -->
             <div>
-                <a href="{{ route('packages.index') }}" class="group modern-button hover-lift inline-flex px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white text-xl font-bold rounded-full transition-all duration-700 shadow-xl ease-out" 
+                <a href="{{ route('packages.index') }}" class="group modern-button hover-lift inline-flex px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white text-sm xs:text-base sm:text-lg md:text-xl font-bold rounded-full transition-all duration-700 shadow-xl ease-out" 
                     style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"
                     :class="showBtn ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'">
-                    <span class="flex items-center justify-center space-x-2 relative z-10">
-                        <svg class="w-5 h-5 group-hover:text-yellow-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span class="flex items-center justify-center space-x-1 sm:space-x-2 relative z-10">
+                        <svg class="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 group-hover:text-yellow-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
-                        <span>Explore Packages</span>
-                        <span>🪂</span>
+                        <span>ready to fly?</span>
                     </span>
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Scroll Indicator -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
-        <div class="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center">
-            <div class="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
+    <!-- Scroll Indicator - Hidden on mobile -->
+    <div class="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce hidden sm:block">
+        <div class="w-5 h-8 sm:w-6 sm:h-10 border-2 border-white/60 rounded-full flex justify-center">
+            <div class="w-1 h-2 sm:h-3 bg-white rounded-full mt-1.5 sm:mt-2 animate-pulse"></div>
         </div>
     </div>
 </section>
@@ -179,16 +178,83 @@ setTimeout(() => showBtn = true, 3200);
     left: 100%;
 }
 
-@media (max-width: 768px) {
-    .particle { display: none; }
+/* Extra small devices (phones < 480px) */
+@media (max-width: 479px) {
+    .hero-section {
+        height: 50vh !important;
+        min-height: 350px;
+        max-height: 450px;
+    }
 }
 
+/* Small devices (landscape phones) */
+@media (min-width: 480px) and (max-width: 639px) {
+    .hero-section {
+        height: 55vh !important;
+        min-height: 400px;
+        max-height: 500px;
+    }
+}
+
+/* Tablets */
+@media (min-width: 640px) and (max-width: 767px) {
+    .hero-section {
+        height: 60vh !important;
+    }
+}
+
+/* Custom breakpoint for xs */
+@media (min-width: 380px) {
+    .xs\:text-3xl { font-size: 1.875rem; }
+    .xs\:text-4xl { font-size: 2.25rem; }
+    .xs\:text-2xl { font-size: 1.5rem; }
+    .xs\:text-base { font-size: 1rem; }
+    .xs\:block { display: block; }
+    .xs\:px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .xs\:py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .xs\:w-4 { width: 1rem; }
+    .xs\:h-4 { height: 1rem; }
+}
+
+/* Landscape mode adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hero-section {
+        height: 80vh !important;
+        min-height: 300px;
+    }
+    
+    /* Hide subtitle in landscape mobile */
+    .hero-section p {
+        display: none !important;
+    }
+    
+    /* Reduce text sizes in landscape */
+    .hero-section span {
+        line-height: 1 !important;
+    }
+}
+
+/* Disable animations on mobile for performance */
+@media (max-width: 640px) {
+    .particle { 
+        display: none !important; 
+    }
+    
+    .animate-breathe {
+        animation: breathe 3s ease-in-out 1;
+        animation-fill-mode: forwards;
+    }
+}
+
+/* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.3s !important;
         animation-iteration-count: 1 !important;
     }
     .particle { animation: none; }
+    .animate-bounce { animation: none; }
+    .animate-pulse { animation: none; }
 }
 </style>
 @endpush

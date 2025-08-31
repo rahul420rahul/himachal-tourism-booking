@@ -16,8 +16,8 @@ class PaymentController extends Controller
     public function __construct()
     {
         // Fixed: Use correct environment variable names
-        $this->razorpayId = env('RAZORPAY_KEY_ID');
-        $this->razorpayKey = env('RAZORPAY_KEY_SECRET');
+        $this->razorpayId = config('services.razorpay.key');
+        $this->razorpayKey = config('services.razorpay.secret');
     }
 
     public function createOrder(Request $request)

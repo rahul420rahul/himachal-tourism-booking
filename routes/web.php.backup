@@ -15,6 +15,8 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CertificateController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 // Root route - home page
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -31,6 +33,24 @@ Route::get('/forecast/{city?}', [WeatherController::class, 'getForecast'])->name
 Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/bookings/{id}/guest', [BookingController::class, 'guestShow'])->name('bookings.guest');
 Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+
+// REACT BOOKING ROUTE - PROPERLY CONFIGURED
+Route::get('/booking-new/{id?}', function ($id = null) {
+    $packages = \App\Models\Package::where('is_active', true)->get();
+    $selectedPackage = null;
+    
+    if ($id) {
+        $selectedPackage = \App\Models\Package::find($id);
+        if (!$selectedPackage) {
+            abort(404, 'Package not found');
+        }
+    }
+    
+    return view('react-booking', [
+        'packages' => $packages,
+        'selectedPackage' => $selectedPackage
+    ]);
+})->name('booking.react');
 
 // Payment routes (accessible to guests)
 Route::post('/payments/create-order', [PaymentController::class, 'createOrder'])->name('payments.create-order');
@@ -68,6 +88,7 @@ Route::get('/refund-policy', [PageController::class, 'refund'])->name('refund');
 // PUBLIC API Routes (NO AUTH REQUIRED)
 Route::prefix('api')->group(function () {
     Route::get('/packages/search', [PackageController::class, 'search'])->name('api.packages.search');
+    Route::get('/packages', [\App\Http\Controllers\Api\ReactBookingController::class, 'getPackages'] ?? [PackageController::class, 'index']);
     Route::get('/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('api.time-slots');
     Route::get('/weather-check', [BookingController::class, 'checkWeather'])->name('api.weather-check');
 });
@@ -93,15 +114,15 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard Sub-routes
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
-        // Existing dashboard routes
         Route::get('/certificates', [DashboardController::class, 'certificates'])->name('certificates');
         Route::get('/certificates/{certificate}/download', [DashboardController::class, 'downloadCertificate'])->name('certificate.download');
         Route::get('/gallery', [DashboardController::class, 'gallery'])->name('gallery');
         Route::post('/gallery/upload', [DashboardController::class, 'uploadToGallery'])->name('gallery.upload');
+        Route::delete('/gallery/{gallery}', [DashboardController::class, 'deleteGalleryItem'])->name('gallery.delete');
         Route::get('/achievements', [DashboardController::class, 'achievements'])->name('achievements');
         Route::get('/statistics', [DashboardController::class, 'statistics'])->name('statistics');
         
-        // Flight Log CRUD Routes - CONSOLIDATED AND FIXED
+        // Flight Log CRUD Routes
         Route::get('/flight-logs', [DashboardController::class, 'flightLogs'])->name('flight-logs');
         Route::get('/flight-logs/create', [DashboardController::class, 'createFlightLog'])->name('flight-logs.create');
         Route::post('/flight-logs', [DashboardController::class, 'storeFlightLog'])->name('flight-logs.store');
@@ -118,7 +139,6 @@ Route::middleware('auth')->group(function () {
     
     // Authenticated Booking routes
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
-    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
     Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
     
@@ -138,7 +158,6 @@ Route::middleware('auth')->group(function () {
     
     // Admin/Manager only routes
     Route::middleware(['can:manage-system'])->group(function () {
-        
         // Package Management
         Route::post('/packages', [PackageController::class, 'store'])->name('packages.store');
         Route::get('/packages/create', [PackageController::class, 'create'])->name('packages.create');
@@ -198,7 +217,9 @@ Route::get('/health', function () {
         'status' => 'OK',
         'timestamp' => now(),
         'app' => config('app.name'),
-        'version' => '1.0.0'
+        'version' => '1.0.0',
+        'cache' => Cache::has('health_check'),
+        'database' => DB::connection()->getPdo() ? true : false,
     ]);
 })->name('health');
 
@@ -212,8 +233,11 @@ Route::get('/rewards', function () {
     return view('rewards.index');
 })->name('rewards');
 
-// Test route
+// Test routes
 Route::get('/test', function() { return view('test'); });
+Route::get('/test123', function() { return 'Test route works!'; });
+Route::get('/test-react', fn() => view('test-react'));
+Route::get('/packages-react', fn() => view('react-packages'))->name('packages.react');
 
 // Fallback route for 404
 Route::fallback(function () {
@@ -221,74 +245,38 @@ Route::fallback(function () {
 });
 
 // Auth routes
-require __DIR__.'/auth.php';Route::delete('/dashboard/gallery/{gallery}', [DashboardController::class, 'deleteGalleryItem'])->name('dashboard.gallery.delete');
+require __DIR__.'/auth.php';
 
-// Health check endpoint
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'timestamp' => now(),
-        'cache' => Cache::has('health_check'),
-        'database' => DB::connection()->getPdo() ? true : false,
-    ]);
-});
+// Include other route files if they exist
+if (file_exists(__DIR__.'/web_react_booking.php')) {
+    require __DIR__.'/web_react_booking.php';
+}
+// React Booking Route
+Route::get('/booking/{package_id}', function ($package_id) {
+    return view('booking.react', ['package_id' => $package_id]);
+})->name('booking.show');
 
+// React Booking Route with proper handling
+Route::get('/booking/{package_id}', function ($package_id) {
+    return view('booking.react', ['package_id' => $package_id]);
+})->name('booking.show');
 
-// React version of booking page
-Route::get('/bookings/create-react', function() {
-    $packages = \App\Models\Package::where('is_active', true)->get();
-    return view('bookings.create-react', compact('packages'));
-})->name('bookings.create.react');
+Route::get('/bookings/{booking}/success', function ($booking) {
+    $booking = \App\Models\Booking::findOrFail($booking);
+    return view('booking.success', compact('booking'));
+})->name('booking.success');
 
+Route::get('/bookings/{booking}/success', function ($id) {
+    $booking = \App\Models\Booking::with('package')->findOrFail($id);
+    return view('booking.success', compact('booking'));
+})->name('booking.success');
+Route::get('/my-bookings', function() { return view('bookings.my-bookings'); })->name('bookings.my')->middleware('web');
 
-// React Booking Page
-Route::get('/bookings/create-react', function() {
-    $packages = \App\Models\Package::where('is_active', true)->get();
-    return view('bookings.create-react', compact('packages'));
-})->name('bookings.create.react');
-
-Route::get('/test123', function() {
-    return 'Test route works!';
-});
-
-Route::get('/react-booking', function() {
-    $packages = \App\Models\Package::where('is_active', true)->get();
-    return view('bookings.create-react', compact('packages'));
-})->name('react.booking');
-Route::get('/react-test', fn() => view('bookings.create-react-test'));
-
-// Test React route
-Route::get('/test-react', function () {
-    return view('test-react');
-})->name('test.react');
-Route::get('/booking', fn() => view('booking-page'));
-Route::get('/booking', fn() => view('booking-page'));
-
-// React Booking System
-Route::get('/booking-new', fn() => view('react-booking'))->name('booking.react');
-Route::get('/booking-new/{any}', fn() => view('react-booking'))->where('any', '.*');
+// Booking API routes
+Route::post('/api/bookings', [App\Http\Controllers\Api\BookingController::class, 'store']);
+Route::get('/api/my-bookings', [App\Http\Controllers\Api\BookingController::class, 'getMyBookings']);
 
 
-// React Booking System
-Route::get('/booking-new', fn() => view('react-booking'))->name('booking.react');
-Route::get('/booking-new/{any}', fn() => view('react-booking'))->where('any', '.*');
+// Booking success page
+Route::get('/booking-success/{id}', [App\Http\Controllers\BookingSuccessController::class, 'show'])->name('booking.success');
 
-
-// React Booking System
-Route::get('/booking-new', fn() => view('react-booking'))->name('booking.react');
-Route::get('/booking-new/{any}', fn() => view('react-booking'))->where('any', '.*');
-
-
-// React Booking System
-Route::get('/booking-new', fn() => view('react-booking'))->name('booking.react');
-Route::get('/booking-new/{any}', fn() => view('react-booking'))->where('any', '.*');
-
-
-// React Booking System
-Route::get('/booking-new', fn() => view('react-booking'))->name('booking.react');
-Route::get('/booking-new/{any}', fn() => view('react-booking'))->where('any', '.*');
-
-Route::get('/test-react', fn() => view('test-react'));
-Route::get('/packages-react', fn() => view('react-packages'))->name('packages.react');
-require __DIR__.'/web_react_booking.php';
-require __DIR__.'/web_react_booking.php';

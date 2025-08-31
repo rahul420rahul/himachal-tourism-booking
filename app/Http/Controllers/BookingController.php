@@ -149,8 +149,8 @@ class BookingController extends Controller
                 $razorpaySecret = config('services.razorpay.secret');
                 
                 if (!$razorpayKey || !$razorpaySecret) {
-                    $razorpayKey = env('RAZORPAY_KEY_ID');
-                    $razorpaySecret = env('RAZORPAY_KEY_SECRET');
+                    $razorpayKey = config('services.razorpay.key');
+                    $razorpaySecret = config('services.razorpay.secret');
                 }
                 
                 if (!$razorpayKey || !$razorpaySecret) {
@@ -270,8 +270,8 @@ class BookingController extends Controller
             $razorpaySecret = config('services.razorpay.secret');
             
             if (!$razorpayKey || !$razorpaySecret) {
-                $razorpayKey = env('RAZORPAY_KEY_ID');
-                $razorpaySecret = env('RAZORPAY_KEY_SECRET');
+                $razorpayKey = config('services.razorpay.key');
+                $razorpaySecret = config('services.razorpay.secret');
             }
             
             $api = new \Razorpay\Api\Api($razorpayKey, $razorpaySecret);
@@ -339,7 +339,7 @@ class BookingController extends Controller
         }
         
         $bookings = Auth::user()->bookings()->with('package')->latest()->paginate(10);
-        return view('bookings.my-bookings', compact('bookings'));
+        return view('my-bookings', compact('bookings'));
     }
 
     // ... rest of the methods remain unchanged

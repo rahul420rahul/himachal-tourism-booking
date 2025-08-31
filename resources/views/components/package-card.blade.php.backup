@@ -61,11 +61,7 @@
                 <svg class="w-3 h-3 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
                 </svg>
-                @php
-                    $duration = is_numeric($package->duration ?? null) ? (int)$package->duration : 2;
-                    $nights = $duration > 0 ? $duration - 1 : 1;
-                @endphp
-                {{ $duration }} Day(s) / {{ $nights }} Night(s)
+                {{ $package->duration }}
             </div>
             
             <div class="flex items-center justify-between">

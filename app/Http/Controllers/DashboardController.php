@@ -2,308 +2,280 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FlightLog;
-use App\Models\Gallery;
-use App\Models\Certificate;
-use App\Models\Achievement;
-use App\Models\UserStatistics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Models\Booking;
+use App\Models\Certificate;
+use App\Models\Gallery;
+use App\Models\FlightLog;
 
 class DashboardController extends Controller
 {
-    // Main dashboard
     public function index()
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
         $user = Auth::user();
         
-        $stats = [
-            'total_flights' => FlightLog::where('user_id', $user->id)->count(),
-            'total_hours' => FlightLog::where('user_id', $user->id)->sum('duration'),
-            'total_distance' => FlightLog::where('user_id', $user->id)->sum('distance'),
-            'max_altitude' => FlightLog::where('user_id', $user->id)->max('max_altitude'),
-            'certificates' => Certificate::where('user_id', $user->id)->count(),
-            'achievements' => Achievement::whereHas('users', function($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })->count(),
-        ];
-
-        $recentFlights = FlightLog::where('user_id', $user->id)
-            ->orderBy('flight_date', 'desc')
-            ->take(5)
+        // Get user's bookings
+        $myBookings = Booking::where('user_id', $user->id)
+            ->with('package')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
             ->get();
-
-        return view('dashboard', compact('stats', 'recentFlights'));
+        
+        // Get user's certificates - check if model exists
+        $certificates = collect();
+        if (class_exists('App\Models\Certificate')) {
+            $certificates = Certificate::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
+        
+        // Get user's gallery items
+        $galleries = Gallery::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(4)
+            ->get();
+        
+        // Pass all variables to the view
+        return view('dashboard', compact('myBookings', 'certificates', 'galleries'));
     }
 
-    // Gallery methods
     public function gallery()
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
         $galleries = Gallery::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(12);
-
-        $flightLogs = FlightLog::where('user_id', Auth::id())
-            ->orderBy('flight_date', 'desc')
-            ->get();
-
-        return view('dashboard.gallery', compact('galleries', 'flightLogs'));
+            
+        return view('dashboard.gallery', compact('galleries'));
     }
 
     public function uploadToGallery(Request $request)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'required|file|mimes:jpeg,png,jpg,gif,mp4,mpeg,quicktime|max:51200', // 50MB max
-            'flight_log_id' => 'nullable|exists:flight_logs,id',
-            'category' => 'required|in:flight,equipment,scenery,team,other',
-            'is_public' => 'boolean'
+            'file' => 'required|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:10240'
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('gallery/' . Auth::id(), 'public');
+        $path = $file->store('gallery', 'public');
 
         $gallery = Gallery::create([
             'user_id' => Auth::id(),
-            'flight_log_id' => $request->flight_log_id,
             'title' => $request->title,
             'description' => $request->description,
             'file_path' => $path,
-            'type' => $file->getMimeType(),
-            'category' => $request->category,
-            'is_public' => $request->boolean('is_public', false)
+            'file_type' => $file->getMimeType(),
+            'is_public' => $request->has('is_public') ? true : false
         ]);
 
-        return redirect()->route('dashboard.gallery')
-            ->with('success', 'File uploaded successfully!');
+        return redirect()->back()->with('success', 'File uploaded successfully!');
     }
 
-    public function deleteGalleryItem($id)
+    public function deleteGalleryItem(Gallery $gallery)
     {
-        $gallery = Gallery::where('user_id', Auth::id())->findOrFail($id);
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
         
+        // Check if user owns this gallery item
+        if ($gallery->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         // Delete file from storage
         if (Storage::disk('public')->exists($gallery->file_path)) {
             Storage::disk('public')->delete($gallery->file_path);
         }
-        
+
         $gallery->delete();
 
-        return redirect()->route('dashboard.gallery')
-            ->with('success', 'Gallery item deleted successfully!');
+        return redirect()->back()->with('success', 'Item deleted successfully!');
     }
 
-    // Certificates methods
     public function certificates()
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        if (!class_exists('App\Models\Certificate')) {
+            return redirect()->route('dashboard')->with('error', 'Certificates feature not available');
+        }
+        
         $certificates = Certificate::where('user_id', Auth::id())
-            ->orderBy('issued_date', 'desc')
-            ->get();
-
-        // Check and generate automatic certificates
-        $this->checkAndGenerateCertificates();
-
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+            
         return view('dashboard.certificates', compact('certificates'));
     }
 
-    private function checkAndGenerateCertificates()
+    public function uploadCertificate(Request $request)
     {
-        $user = Auth::user();
-        $flightCount = 0;
-        $totalHours = 0;
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        if (!class_exists('App\Models\Certificate')) {
+            return redirect()->route('dashboard')->with('error', 'Certificates feature not available');
+        }
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'certificate_number' => 'nullable|string|max:100',
+            'issue_date' => 'nullable|date',
+            'expiry_date' => 'nullable|date|after:issue_date',
+            'issuing_authority' => 'nullable|string|max:255',
+            'certificate_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048'
+        ]);
 
-        // First Flight Certificate
-        if ($flightCount >= 1 && !Certificate::where('user_id', $user->id)->where('type', 'first_flight')->exists()) {
-            Certificate::create([
-                'user_id' => $user->id,
-                'type' => 'first_flight',
-                'title' => 'First Flight Certificate',
-                'description' => 'Congratulations on completing your first paragliding flight!',
-                'certificate_number' => 'CERT-' . Str::upper(Str::random(10)),
-                'issued_date' => now()
-            ]);
+        $file = $request->file('certificate_file');
+        $path = $file->store('certificates', 'public');
+
+        Certificate::create([
+            'user_id' => Auth::id(),
+            'name' => $request->name,
+            'certificate_number' => $request->certificate_number,
+            'issue_date' => $request->issue_date,
+            'expiry_date' => $request->expiry_date,
+            'issuing_authority' => $request->issuing_authority,
+            'file_path' => $path,
+            'verified' => false
+        ]);
+
+        return redirect()->back()->with('success', 'Certificate uploaded successfully!');
+    }
+
+    public function downloadCertificate($certificateId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        if (!class_exists('App\Models\Certificate')) {
+            abort(404);
+        }
+        
+        $certificate = Certificate::findOrFail($certificateId);
+        
+        // Check if user owns this certificate
+        if ($certificate->user_id !== Auth::id()) {
+            abort(403);
         }
 
-        // 10 Flights Milestone
-        if ($flightCount >= 10 && !Certificate::where('user_id', $user->id)->where('type', '10_flights')->exists()) {
-            Certificate::create([
-                'user_id' => $user->id,
-                'type' => '10_flights',
-                'title' => '10 Flights Milestone',
-                'description' => 'Achievement unlocked: 10 successful flights completed!',
-                'certificate_number' => 'CERT-' . Str::upper(Str::random(10)),
-                'issued_date' => now()
-            ]);
-        }
-
-        // 50 Hours Milestone
-        if ($totalHours >= 50 && !Certificate::where('user_id', $user->id)->where('type', '50_hours')->exists()) {
-            Certificate::create([
-                'user_id' => $user->id,
-                'type' => '50_hours',
-                'title' => '50 Hours Airtime',
-                'description' => 'Congratulations on achieving 50 hours of flight time!',
-                'certificate_number' => 'CERT-' . Str::upper(Str::random(10)),
-                'issued_date' => now()
-            ]);
-        }
+        return Storage::disk('public')->download($certificate->file_path);
     }
 
-    public function downloadCertificate($id)
-    {
-        $certificate = Certificate::where('user_id', Auth::id())->findOrFail($id);
-        
-        // Generate PDF logic here
-        return view('certificates.download', compact('certificate'));
-    }
-
-    // Achievements methods
-    public function achievements()
-    {
-        $user = Auth::user();
-        
-        // Check and unlock achievements
-        $this->checkAndUnlockAchievements();
-        
-        $allAchievements = Achievement::all();
-        $userAchievements = $user->achievements()->pluck('achievement_id')->toArray();
-
-        return view('dashboard.achievements', compact('allAchievements', 'userAchievements'));
-    }
-
-    private function checkAndUnlockAchievements()
-    {
-        $user = Auth::user();
-        $stats = [
-            'flights' => FlightLog::where('user_id', $user->id)->count(),
-            'hours' => FlightLog::where('user_id', $user->id)->sum('duration'),
-            'max_altitude' => FlightLog::where('user_id', $user->id)->max('max_altitude'),
-            'total_distance' => FlightLog::where('user_id', $user->id)->sum('distance')
-        ];
-
-        // Define achievements
-        $achievementCriteria = [
-            ['type' => 'first_flight', 'condition' => $stats['flights'] >= 1],
-            ['type' => 'high_flyer', 'condition' => $stats['max_altitude'] >= 3000],
-            ['type' => 'long_distance', 'condition' => $stats['total_distance'] >= 100],
-            ['type' => 'veteran', 'condition' => $stats['hours'] >= 100],
-        ];
-
-        foreach ($achievementCriteria as $criteria) {
-            if ($criteria['condition']) {
-                $achievement = Achievement::firstOrCreate(['type' => $criteria['type']]);
-                $user->achievements()->syncWithoutDetaching([$achievement->id => ['unlocked_at' => now()]]);
-            }
-        }
-    }
-
-    // Statistics methods
-    public function statistics()
-    {
-        $user = Auth::user();
-        
-        $stats = [
-            'total_flights' => FlightLog::where('user_id', $user->id)->count(),
-            'total_hours' => FlightLog::where('user_id', $user->id)->sum('duration'),
-            'total_distance' => FlightLog::where('user_id', $user->id)->sum('distance'),
-            'max_altitude' => FlightLog::where('user_id', $user->id)->max('max_altitude'),
-            'avg_duration' => FlightLog::where('user_id', $user->id)->avg('duration'),
-            'favorite_site' => FlightLog::where('user_id', $user->id)
-                ->select('site', \DB::raw('count(*) as count'))
-                ->groupBy('site')
-                ->orderByDesc('count')
-                ->first(),
-        ];
-
-        $monthlyFlights = FlightLog::where('user_id', $user->id)
-            ->selectRaw('MONTH(flight_date) as month, COUNT(*) as count')
-            ->whereYear('flight_date', date('Y'))
-            ->groupBy('month')
-            ->get();
-
-        return view('dashboard.statistics', compact('stats', 'monthlyFlights'));
-    }
-
-    // Flight Log methods (existing)
     public function flightLogs()
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        if (!class_exists('App\Models\FlightLog')) {
+            return redirect()->route('dashboard')->with('error', 'Flight logs feature not available');
+        }
+        
         $flightLogs = FlightLog::where('user_id', Auth::id())
             ->orderBy('flight_date', 'desc')
             ->paginate(10);
-
+            
         return view('dashboard.flight-logs', compact('flightLogs'));
     }
 
     public function createFlightLog()
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
         return view('dashboard.flight-logs-create');
     }
 
     public function storeFlightLog(Request $request)
     {
-        $validated = $request->validate([
-            'flight_date' => 'required|date',
-            'site' => 'required|string|max:255',
-            'duration' => 'required|numeric|min:0',
-            'max_altitude' => 'required|numeric|min:0',
-            'distance' => 'nullable|numeric|min:0',
-            'wing_model' => 'nullable|string|max:255',
-            'weather_conditions' => 'nullable|string',
-            'notes' => 'nullable|string'
-        ]);
-
-        $validated['user_id'] = Auth::id();
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
         
-        FlightLog::create($validated);
-
-        return redirect()->route('dashboard.flight-logs')
-            ->with('success', 'Flight log added successfully!');
-    }
-
-    public function editFlightLog(FlightLog $flightLog)
-    {
-        if ($flightLog->user_id !== Auth::id()) {
-            abort(403);
+        if (!class_exists('App\Models\FlightLog')) {
+            return redirect()->route('dashboard')->with('error', 'Flight logs feature not available');
         }
-
-        return view('dashboard.flight-logs-edit', compact('flightLog'));
-    }
-
-    public function updateFlightLog(Request $request, FlightLog $flightLog)
-    {
-        if ($flightLog->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
+        
+        $request->validate([
             'flight_date' => 'required|date',
-            'site' => 'required|string|max:255',
-            'duration' => 'required|numeric|min:0',
-            'max_altitude' => 'required|numeric|min:0',
-            'distance' => 'nullable|numeric|min:0',
-            'wing_model' => 'nullable|string|max:255',
-            'weather_conditions' => 'nullable|string',
+            'duration' => 'required|integer|min:1',
+            'location' => 'required|string|max:255',
+            'weather' => 'nullable|string|max:255',
             'notes' => 'nullable|string'
         ]);
 
-        $flightLog->update($validated);
+        FlightLog::create([
+            'user_id' => Auth::id(),
+            'flight_date' => $request->flight_date,
+            'duration' => $request->duration,
+            'location' => $request->location,
+            'weather' => $request->weather,
+            'notes' => $request->notes
+        ]);
 
-        return redirect()->route('dashboard.flight-logs')
-            ->with('success', 'Flight log updated successfully!');
+        return redirect()->route('dashboard.flight-logs')->with('success', 'Flight log added successfully!');
     }
 
-    public function destroyFlightLog(FlightLog $flightLog)
+    public function updateFlightLog(Request $request, $flightLogId)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        if (!class_exists('App\Models\FlightLog')) {
+            abort(404);
+        }
+        
+        $flightLog = FlightLog::findOrFail($flightLogId);
+        
+        // Check if user owns this flight log
         if ($flightLog->user_id !== Auth::id()) {
             abort(403);
         }
 
-        $flightLog->delete();
+        $request->validate([
+            'flight_date' => 'required|date',
+            'duration' => 'required|integer|min:1',
+            'location' => 'required|string|max:255',
+            'weather' => 'nullable|string|max:255',
+            'notes' => 'nullable|string'
+        ]);
 
-        return redirect()->route('dashboard.flight-logs')
-            ->with('success', 'Flight log deleted successfully!');
+        $flightLog->update($request->all());
+
+        return redirect()->route('dashboard.flight-logs')->with('success', 'Flight log updated successfully!');
+    }
+
+    public function achievements()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        // This would typically fetch user achievements from database
+        $achievements = [];
+        
+        return view('dashboard.achievements', compact('achievements'));
     }
 }
