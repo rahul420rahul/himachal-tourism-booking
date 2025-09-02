@@ -13,66 +13,45 @@ use Filament\Tables\Table;
 class BookingResource extends Resource
 {
     protected static ?string $model = Booking::class;
-    protected static ?string $navigationIcon = 'heroicon-o-calendar';
-    protected static ?string $navigationGroup = 'Booking Management';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Guest Information')
-                    ->schema([
-                        Forms\Components\TextInput::make('guest_name')
-                            ->label('Guest Name')
-                            ->required(),
-                        Forms\Components\TextInput::make('guest_email')
-                            ->label('Guest Email')
-                            ->email()
-                            ->required(),
-                        Forms\Components\TextInput::make('guest_phone')
-                            ->label('Guest Phone')
-                            ->tel()
-                            ->required(),
-                    ])->columns(3),
-
-                Forms\Components\Section::make('Payment Details')
-                    ->schema([
-                        Forms\Components\TextInput::make('package_price')
-                            ->label('Package Price')
-                            ->numeric()
-                            ->prefix('₹')
-                            ->disabled(),
-                        Forms\Components\TextInput::make('total_amount')
-                            ->label('Total Amount')
-                            ->numeric()
-                            ->prefix('₹')
-                            ->disabled(),
-                        Forms\Components\TextInput::make('advance_amount')
-                            ->label('Advance Paid')
-                            ->numeric()
-                            ->prefix('₹')
-                            ->disabled(),
-                        Forms\Components\TextInput::make('pending_amount')
-                            ->label('Balance Due')
-                            ->numeric()
-                            ->prefix('₹')
-                            ->disabled(),
-                        Forms\Components\Select::make('booking_status')
-                            ->options([
-                                'confirmed' => 'Confirmed',
-                                'pending' => 'Pending',
-                                'cancelled' => 'Cancelled'
-                            ])
-                            ->label('Booking Status'),
-                        Forms\Components\Select::make('payment_status')
-                            ->options([
-                                'paid' => 'Fully Paid',
-                                'partial' => 'Advance Paid',
-                                'pending' => 'Payment Pending'
-                            ])
-                            ->label('Payment Status'),
-                    ])->columns(3),
+                Forms\Components\TextInput::make('booking_number')
+                    ->required(),
+                Forms\Components\TextInput::make('guest_name')
+                    ->required(),
+                Forms\Components\TextInput::make('guest_email')
+                    ->email()
+                    ->required(),
+                Forms\Components\TextInput::make('guest_phone')
+                    ->required(),
+                Forms\Components\Select::make('package_id')
+                    ->relationship('package', 'name')
+                    ->required(),
+                Forms\Components\DatePicker::make('booking_date')
+                    ->required(),
+                Forms\Components\TextInput::make('total_amount')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('advance_amount')
+                    ->numeric(),
+                Forms\Components\TextInput::make('pending_amount')
+                    ->numeric(),
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'confirmed' => 'Confirmed',
+                        'cancelled' => 'Cancelled',
+                    ]),
+                Forms\Components\Select::make('payment_status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'partial' => 'Partial',
+                        'paid' => 'Paid',
+                    ]),
             ]);
     }
 
@@ -81,8 +60,7 @@ class BookingResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('booking_number')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('guest_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('guest_email'),
@@ -93,27 +71,63 @@ class BookingResource extends Resource
                     ->date(),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->money('INR')
-                    ->label('Total Amount'),
-                Tables\Columns\TextColumn::make('advance_amount')
-                    ->money('INR')
-                    ->label('Advance Paid'),
+                    ->prefix('₹'),
                 Tables\Columns\TextColumn::make('pending_amount')
+                    ->label('Balance Due')
                     ->money('INR')
-                    ->label('Balance Due'),
-                Tables\Columns\BadgeColumn::make('payment_status')
-                    ->colors([
-                        'success' => 'paid',
-                        'warning' => 'partial',
-                        'danger' => 'pending',
-                    ]),
+                    ->prefix('₹')
+                    ->color(fn ($state) => $state > 0 ? 'danger' : 'success')
+                    ->weight(fn ($state) => $state > 0 ? 'bold' : 'normal'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
-                        'success' => 'confirmed',
                         'warning' => 'pending',
+                        'success' => 'confirmed',
                         'danger' => 'cancelled',
                     ]),
+                Tables\Columns\BadgeColumn::make('payment_status')
+                    ->colors([
+                        'warning' => 'partial',
+                        'success' => 'paid',
+                        'danger' => 'pending',
+                    ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->filters([
+                Tables\Filters\Filter::make('pending_balance')
+                    ->label('Show Pending Payments Only')
+                    ->query(fn ($query) => $query->where('pending_amount', '>', 0)->where('balance_confirmed', false)),
+            ])
+            ->actions([
+                Tables\Actions\Action::make('confirm_payment')
+                    ->label('Confirm Payment')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->pending_amount > 0 && !$record->balance_confirmed)
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirm Balance Payment')
+                    ->modalDescription('Confirm that balance payment has been received?')
+                    ->action(function ($record) {
+                        $record->update([
+                            'balance_confirmed' => true,
+                            'balance_confirmed_at' => now(),
+                            'payment_status' => 'paid',
+                            'pending_amount' => 0,
+                            'confirmed_by' => auth()->id()
+                        ]);
+                    }),
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array
@@ -121,7 +135,6 @@ class BookingResource extends Resource
         return [
             'index' => Pages\ListBookings::route('/'),
             'create' => Pages\CreateBooking::route('/create'),
-            'view' => Pages\ViewBooking::route('/{record}'),
             'edit' => Pages\EditBooking::route('/{record}/edit'),
         ];
     }

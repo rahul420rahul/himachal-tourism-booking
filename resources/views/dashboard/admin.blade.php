@@ -11,39 +11,53 @@
                 <div class="card-body">
                     <h5 class="card-title">Total Revenue</h5>
                     <h2 class="mb-0">₹{{ number_format($stats['total_revenue']) }}</h2>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
                 </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
             </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card text-white bg-success">
                 <div class="card-body">
                     <h5 class="card-title">Today's Revenue</h5>
                     <h2 class="mb-0">₹{{ number_format($stats['today_revenue']) }}</h2>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
                 </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
             </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card text-white bg-warning">
                 <div class="card-body">
                     <h5 class="card-title">Total Bookings</h5>
                     <h2 class="mb-0">{{ $stats['total_bookings'] }}</h2>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
                 </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
             </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card text-white bg-info">
                 <div class="card-body">
                     <h5 class="card-title">Total Users</h5>
                     <h2 class="mb-0">{{ $stats['total_users'] }}</h2>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
                 </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
             </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
     </div>
     
     <!-- Recent Bookings -->
     <div class="card">
         <div class="card-header">
             <h4>Recent Bookings</h4>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -79,8 +93,12 @@
                         @endforeach
                     </tbody>
                 </table>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
             </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
         </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
     </div>
+        <a href="{{ route('admin.pending-payments') }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Pending Payments</a>
 </div>
 @endsection

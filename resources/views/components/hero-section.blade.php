@@ -1,24 +1,45 @@
 <!-- Hero Section Component (Mobile Optimized) -->
-<section class="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[75vh] overflow-hidden hero-section" x-data="{ muted: true, showLine1: false, showLine2: false, showLine3: false, showDesc: false, showBtn: false }" 
-x-init="
-setTimeout(() => showLine1 = true, 800);
-setTimeout(() => showLine2 = true, 1400); 
-setTimeout(() => showLine3 = true, 2000);
-setTimeout(() => showDesc = true, 2600);
-setTimeout(() => showBtn = true, 3200);
-">
-    <!-- Video Background -->
+<section class="relative w-full h-[40vh] sm:h-[60vh] md:h-[70vh] lg:h-[75vh] overflow-hidden hero-section" 
+    x-data="{ 
+        muted: true, 
+        showLine1: false, 
+        showLine2: false, 
+        showLine3: false, 
+        showDesc: false, 
+        showBtn: false 
+    }" 
+    x-init="
+        setTimeout(() => showLine1 = true, 500);
+        setTimeout(() => showLine2 = true, 1800); 
+        setTimeout(() => showLine3 = true, 2400);
+        setTimeout(() => showDesc = true, 3000);
+        setTimeout(() => showBtn = true, 3600);
+    ">
+
+    <!-- Video Background - Simple & Fast -->
     <video
         class="absolute inset-0 w-full h-full object-cover z-0 scale-105"
+        poster="{{ asset('storage/hero-poster.jpg') }}"
         autoplay
         loop
         playsinline
-        :muted="muted"
+        muted
         x-ref="video"
         style="filter: brightness(0.7) saturate(1.2);"
     >
-        <source src="{{ asset('storage/WhatsApp Video 2025-08-16 at 14.28.02.mp4') }}" type="video/mp4">
-        <source src="https://player.vimeo.com/external/370467553.sd.mp4?s=e90dcaba73c19342c5d25e37e2d2fe8c0f7a6c96&profile_id=164" type="video/mp4">
+        <!-- Mobile version (2.2MB - Fast!) -->
+        <source src="{{ asset('storage/hero-mobile.mp4') }}" 
+                type="video/mp4" 
+                media="(max-width: 768px)">
+        
+        <!-- Desktop version (3.4MB - Optimized) -->
+        <source src="{{ asset('storage/hero-video-compressed.mp4') }}" 
+                type="video/mp4">
+        
+        <!-- Fallback -->
+        <source src="{{ asset('storage/WhatsApp Video 2025-08-16 at 14.28.02.mp4') }}" 
+                type="video/mp4">
+        
         Your browser does not support the video tag.
     </video>
 
@@ -59,51 +80,53 @@ setTimeout(() => showBtn = true, 3200);
         <div class="text-left text-white max-w-3xl">
             <!-- Main Heading - First Line -->
             <div class="overflow-hidden mb-0 sm:mb-1">
-                <span class="block text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white transition-all duration-700 ease-out"
-                    style="text-shadow: 1px 1px 3px rgba(0,0,0,0.4);"
+                <span class="block text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white transition-all duration-1000 ease-out"
+                    style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"
                     :class="showLine1 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
                     READY TO
                 </span>
             </div>
 
-            <!-- Main Heading - Second Line (FLY) -->
+            <!-- Main Heading - Second Line (FLY) - Delayed -->
             <div class="overflow-hidden mb-0 sm:mb-1">
-                <span class="block text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-orange-400 bg-gradient-to-r from-orange-400 via-yellow-400 to-red-500 bg-clip-text text-transparent transition-all duration-700 ease-out animate-breathe"
-                    style="filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));"
-                    :class="showLine2 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
+                <span class="block text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-orange-400 bg-gradient-to-r from-orange-400 via-yellow-400 to-red-500 bg-clip-text text-transparent transition-all duration-1000 ease-out animate-breathe"
+                    style="filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));"
+                    :class="showLine2 ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-full opacity-0 scale-95'">
                     FLY
                 </span>
             </div>
 
             <!-- Main Heading - Third Line -->
             <div class="overflow-hidden mb-2 sm:mb-4 md:mb-6 lg:mb-8">
-                <span class="block text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-light text-gray-100 transition-all duration-700 ease-out"
-                    style="text-shadow: 1px 1px 3px rgba(0,0,0,0.4);"
+                <span class="block text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-light text-gray-100 transition-all duration-1000 ease-out"
+                    style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"
                     :class="showLine3 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'">
                     HIGHER?
                 </span>
             </div>
 
-            <!-- Subtitle - Hidden on very small screens -->
-            <div class="mb-3 sm:mb-6 hidden xs:block">
-                <p class="text-xs sm:text-sm md:text-base lg:text-xl text-white font-medium leading-relaxed max-w-2xl transition-all duration-700 ease-out"
-                    style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"
+            <!-- Subtitle with better text -->
+            <div class="mb-3 sm:mb-6">
+                <p class="text-xs sm:text-sm md:text-base lg:text-xl text-white/90 font-medium leading-relaxed max-w-2xl transition-all duration-1000 ease-out"
+                    style="text-shadow: 1px 1px 3px rgba(0,0,0,0.5);"
                     :class="showDesc ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'">
-                    Break free from the ground and embrace the endless sky. Your ultimate paragliding adventure 
-                    <span class="text-orange-300 font-bold">starts right here.</span>
+                    Experience the thrill of paragliding in Bir Billing - 
+                    <span class="text-orange-300 font-bold">India's paragliding capital!</span><br>
+                    <span class="text-sm sm:text-base text-white/70">Professional pilots • Stunning views • Unforgettable memories</span>
                 </p>
             </div>
 
-            <!-- CTA Button - Smaller on mobile -->
-            <div>
-                <a href="{{ route('packages.index') }}" class="group modern-button hover-lift inline-flex px-4 py-2 xs:px-5 xs:py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white text-sm xs:text-base sm:text-lg md:text-xl font-bold rounded-full transition-all duration-700 shadow-xl ease-out" 
-                    style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"
+            <!-- CTA Button - Centered on Mobile -->
+            <div class="flex justify-center sm:justify-start">
+                <a href="{{ route('packages.index') }}" class="group modern-button hover-lift inline-flex px-6 py-3 xs:px-7 xs:py-3.5 sm:px-8 sm:py-4 md:px-10 md:py-5 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 hover:from-yellow-300 hover:via-orange-400 hover:to-red-500 text-white text-base xs:text-lg sm:text-xl md:text-2xl font-black rounded-full transition-all duration-700 shadow-2xl ease-out transform hover:rotate-1" 
+                    style="text-shadow: 2px 2px 4px rgba(0,0,0,0.4); box-shadow: 0 10px 30px rgba(255, 140, 0, 0.5);"
                     :class="showBtn ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'">
-                    <span class="flex items-center justify-center space-x-1 sm:space-x-2 relative z-10">
-                        <svg class="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 group-hover:text-yellow-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    <span class="flex items-center justify-center space-x-2 relative z-10">
+                        <svg class="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path>
                         </svg>
-                        <span>ready to fly?</span>
+                        <span class="uppercase tracking-wider">Ready to Fly</span>
+                        <span class="text-yellow-300 animate-pulse">✈️</span>
                     </span>
                 </a>
             </div>
@@ -122,8 +145,14 @@ setTimeout(() => showBtn = true, 3200);
 <style>
 /* Hero Section Animations */
 @keyframes breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    0%, 100% { 
+        transform: scale(1);
+        filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));
+    }
+    50% { 
+        transform: scale(1.05);
+        filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.5));
+    }
 }
 
 @keyframes float {
@@ -145,7 +174,8 @@ setTimeout(() => showBtn = true, 3200);
 }
 
 .animate-breathe {
-    animation: breathe 3s ease-in-out infinite;
+    animation: breathe 4s ease-in-out infinite;
+    animation-delay: 0.5s;
 }
 
 .hover-lift {
@@ -161,6 +191,14 @@ setTimeout(() => showBtn = true, 3200);
     position: relative;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .modern-button::before {
@@ -170,7 +208,7 @@ setTimeout(() => showBtn = true, 3200);
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
     transition: left 0.5s;
 }
 
@@ -178,21 +216,37 @@ setTimeout(() => showBtn = true, 3200);
     left: 100%;
 }
 
+.modern-button::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #ff6b6b);
+    border-radius: 50px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+    filter: blur(5px);
+}
+
+.modern-button:hover::after {
+    opacity: 1;
+}
+
 /* Extra small devices (phones < 480px) */
 @media (max-width: 479px) {
     .hero-section {
-        height: 50vh !important;
-        min-height: 350px;
-        max-height: 450px;
+        height: 40vh !important;
+        min-height: 300px;
+        max-height: 400px;
     }
 }
 
 /* Small devices (landscape phones) */
 @media (min-width: 480px) and (max-width: 639px) {
     .hero-section {
-        height: 55vh !important;
-        min-height: 400px;
-        max-height: 500px;
+        height: 45vh !important;
+        min-height: 350px;
+        max-height: 450px;
     }
 }
 
@@ -223,12 +277,10 @@ setTimeout(() => showBtn = true, 3200);
         min-height: 300px;
     }
     
-    /* Hide subtitle in landscape mobile */
     .hero-section p {
         display: none !important;
     }
     
-    /* Reduce text sizes in landscape */
     .hero-section span {
         line-height: 1 !important;
     }
@@ -241,7 +293,7 @@ setTimeout(() => showBtn = true, 3200);
     }
     
     .animate-breathe {
-        animation: breathe 3s ease-in-out 1;
+        animation: breathe 4s ease-in-out 1;
         animation-fill-mode: forwards;
     }
 }

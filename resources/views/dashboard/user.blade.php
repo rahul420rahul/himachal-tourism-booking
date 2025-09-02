@@ -16,7 +16,7 @@
             <div class="bg-white rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-800">My Bookings</h2>
-                    <a href="{{ route('bookings.my') }}" class="text-blue-600 text-sm hover:underline">View All</a>
+                    <a href="{{ url('/my-bookings') }}" class="text-blue-600 text-sm hover:underline">View All</a>
                 </div>
                 
                 <div class="space-y-3">

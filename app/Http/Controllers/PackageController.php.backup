@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Package;
 use Illuminate\Http\Request;
 
@@ -13,14 +15,6 @@ class PackageController extends Controller
     
     public function show(Package $package)
     {
-        // Check if individual blade file exists for this package
-        $viewName = 'packages.' . $package->slug;
-        
-        if (view()->exists($viewName)) {
-            return view($viewName, compact('package'));
-        }
-        
-        // Fallback to default show view
         return view('packages.show', compact('package'));
     }
     

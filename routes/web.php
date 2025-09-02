@@ -269,3 +269,85 @@ if (file_exists(__DIR__.'/web_react_booking.php')) {
 }
 // Add these routes in the dashboard prefix group (after line 128)
 Route::post('/certificates/store', [DashboardController::class, 'uploadCertificate'])->name('certificates.store');
+
+// API Routes with session support
+
+// Test route to check auth
+Route::get('/test-auth', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $bookings = $user->bookings()->count();
+        return "Logged in as: {$user->email} (ID: {$user->id})<br>Total bookings: {$bookings}";
+    }
+    return "Not logged in";
+});
+
+// Test route to check auth
+Route::get('/test-auth', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $bookings = $user->bookings()->count();
+        return "Logged in as: {$user->email} (ID: {$user->id})<br>Total bookings: {$bookings}";
+    }
+    return "Not logged in";
+});
+
+// Test route to check auth
+Route::get('/test-auth', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        $bookings = $user->bookings()->count();
+        return "Logged in as: {$user->email} (ID: {$user->id})<br>Total bookings: {$bookings}";
+    }
+    return "Not logged in";
+});
+
+Route::get('/test-bookings', function() {
+    if (!Auth::check()) {
+        return "Not logged in!";
+    }
+    
+    $user = Auth::user();
+    $bookings = \App\Models\Booking::where('user_id', $user->id)->get();
+    
+    $html = "User: {$user->email} (ID: {$user->id})<br>";
+    $html .= "Total bookings in DB: " . $bookings->count() . "<br><br>";
+    
+    foreach($bookings as $booking) {
+        $html .= "Booking #{$booking->id} - {$booking->guest_name} - {$booking->booking_date}<br>";
+    }
+    
+    return $html;
+});
+require __DIR__.'/test-booking.php';
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-bookings', [\App\Http\Controllers\BookingController::class, 'myBookings'])->name('bookings.my');
+});
+Route::get('/test-my-bookings', function() {
+    $bookings = \App\Models\User::find(7)->bookings()->with('package')->latest()->paginate(10);
+    dd($bookings->count(), $bookings->total());
+});
+
+// Admin Payment Confirmation Routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/pending-payments', [App\Http\Controllers\Admin\AdminController::class, 'pendingPayments'])->name('admin.pending-payments');
+    Route::post('/confirm-payment/{id}', [App\Http\Controllers\Admin\AdminController::class, 'confirmPayment'])->name('admin.confirm-payment');
+});
+
+// Admin Payment Confirmation Routes  
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/pending-payments', [App\Http\Controllers\BookingController::class, 'pendingPayments'])->name('admin.pending-payments');
+    Route::post('/confirm-payment/{id}', [App\Http\Controllers\BookingController::class, 'confirmPayment'])->name('admin.confirm-payment');
+});
+
+// Serve WebP images with fallback
+Route::get('/optimized-image/{filename}', function($filename) {
+    $webp = storage_path("app/public/{$filename}.webp");
+    $jpg = storage_path("app/public/{$filename}.jpg");
+    
+    if (file_exists($webp)) {
+        return response()->file($webp);
+    }
+    return response()->file($jpg);
+});

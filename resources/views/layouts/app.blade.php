@@ -4,15 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<style>
-        /* Optimized Preloader for Mobile */
+    <meta name="user-id" content="{{ Auth::check() ? Auth::id() : '' }}">
+    <style>
+        /* Optimized Preloader with Modern Gradient Background */
         .preloader {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            /* Modern sunset gradient - orange to pink */
+            background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -28,174 +30,53 @@
         }
         
         .preloader-content {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        /* Simplified logo without heavy animations */
-        .preloader-logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Large centered logo */
+        .preloader-logo {
+            width: 250px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
         
         .preloader-logo img {
-            width: 100px;
-            height: 100px;
+            width: 230px;
+            height: 230px;
             object-fit: contain;
-            /* Remove heavy filters for mobile */
-            filter: brightness(1.1);
+            /* No animation - logo stays still */
         }
         
-        .preloader-brand {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        
-        .brand-my {
-            color: #ff4757;
-        }
-        
-        .brand-bir {
-            color: #ffa502;
-        }
-        
-        .brand-billing {
-            color: #7bed9f;
-        }
-        
-        .preloader-subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.9rem;
-            font-weight: 300;
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Simple spinner without complex animations */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Remove heavy animations on mobile */
+        /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             .preloader-logo {
-                width: 100px;
-                height: 100px;
-                margin-bottom: 1rem;
-                /* No animations on mobile */
-                animation: none !important;
+                width: 200px;
+                height: 200px;
             }
             
             .preloader-logo img {
-                width: 80px;
-                height: 80px;
-                /* Simpler filter for mobile */
-                filter: none;
-            }
-            
-            .preloader-brand {
-                font-size: 2rem;
-                /* No glow animation on mobile */
-                animation: none !important;
-            }
-            
-            .brand-my,
-            .brand-bir,
-            .brand-billing {
-                /* Remove text shadows on mobile */
-                text-shadow: none !important;
-            }
-            
-            .preloader-subtitle {
-                font-size: 0.85rem;
-                /* No fade animation on mobile */
-                animation: none !important;
-            }
-            
-            .loading-spinner {
-                width: 35px;
-                height: 35px;
-                border-width: 2px;
+                width: 180px;
+                height: 180px;
             }
         }
         
         @media (max-width: 480px) {
-            .preloader-brand {
-                font-size: 1.8rem;
-            }
-            
             .preloader-logo {
-                width: 80px;
-                height: 80px;
+                width: 170px;
+                height: 170px;
             }
             
             .preloader-logo img {
-                width: 60px;
-                height: 60px;
+                width: 150px;
+                height: 150px;
             }
-        }
-        
-        /* Desktop animations - only for larger screens */
-        @media (min-width: 769px) {
-            .preloader-logo {
-                animation: logoFloat 2s ease-in-out infinite;
-            }
-            
-            .preloader-brand {
-                animation: textGlow 2s ease-in-out infinite alternate;
-            }
-            
-            .brand-my {
-                text-shadow: 0 0 30px rgba(255, 71, 87, 0.6);
-            }
-            
-            .brand-bir {
-                text-shadow: 0 0 30px rgba(255, 165, 2, 0.6);
-            }
-            
-            .brand-billing {
-                text-shadow: 0 0 30px rgba(123, 237, 159, 0.6);
-            }
-            
-            .preloader-subtitle {
-                animation: fadeInOut 3s ease-in-out infinite;
-            }
-            
-            @keyframes logoFloat {
-                0%, 100% { transform: translateY(0px) scale(1); }
-                50% { transform: translateY(-10px) scale(1.05); }
-            }
-            
-            @keyframes textGlow {
-                0% { transform: scale(1); }
-                100% { transform: scale(1.05); }
-            }
-            
-            @keyframes fadeInOut {
-                0%, 100% { opacity: 0.7; }
-                50% { opacity: 1; }
-            }
-        }
-        
-        /* Performance optimization */
-        .preloader * {
-            will-change: auto !important;
         }
         
         /* Hide content until loaded */
@@ -212,7 +93,6 @@
         }
         
         /* FIXED: Footer visibility classes */
-        /* Desktop Footer - Only visible on large screens */
         .desktop-footer {
             display: none !important;
         }
@@ -223,7 +103,6 @@
             }
         }
         
-        /* Mobile Footer - Only visible on small/medium screens */
         .mobile-footer {
             display: block !important;
         }
@@ -234,7 +113,6 @@
             }
         }
         
-        /* Mobile Bottom Navigation - Only visible on small/medium screens */
         .mobile-bottom-nav {
             display: block !important;
             position: fixed;
@@ -253,10 +131,9 @@
             }
         }
         
-        /* Body padding for mobile bottom nav */
         @media (max-width: 1023px) {
             body {
-                padding-bottom: 64px; /* Space for fixed bottom nav */
+                padding-bottom: 64px;
             }
         }
     </style>
@@ -267,10 +144,8 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 {{-- Alpine.js for dropdown functionality --}}
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-{{-- Styles --}}
 <style>
     [x-cloak] { display: none !important; }
-    /* Smooth transitions */
     .nav-transition {
         transition: all 0.3s ease;
     }
@@ -278,24 +153,13 @@
 @stack('styles')
 </head>
 <body class="font-sans antialiased bg-dark-50 loading">
-    {{-- Optimized Preloader --}}
+    {{-- Optimized Preloader with only Logo --}}
     <div class="preloader" id="preloader">
         <div class="preloader-content">
-            {{-- Logo Container --}}
+            {{-- Only Logo - Centered and Large --}}
             <div class="preloader-logo">
                 <img src="{{ asset('storage/image.png') }}" alt="MyBirBilling Logo" loading="eager">
             </div>
-            
-            {{-- Brand Name --}}
-            <h1 class="preloader-brand">
-                <span class="brand-my">My</span><span class="brand-bir">Bir</span><span class="brand-billing">Billing</span>
-            </h1>
-            
-            {{-- Subtitle --}}
-            <p class="preloader-subtitle">Paragliding Adventures Await</p>
-            
-            {{-- Loading Spinner --}}
-            <div class="loading-spinner"></div>
         </div>
     </div>
 
@@ -354,7 +218,7 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             // Faster removal for mobile
-            const removeDelay = isMobile ? 100 : 300;
+            const removeDelay = isMobile ? 500 : 800;
             const fadeDelay = isMobile ? 200 : 300;
             
             // Function to remove preloader
@@ -371,29 +235,22 @@
                 }
             }
             
-            // Remove on DOM ready for mobile
-            if (isMobile) {
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', function() {
-                        setTimeout(removePreloader, removeDelay);
-                    });
-                } else {
-                    setTimeout(removePreloader, removeDelay);
-                }
-            } else {
-                // Desktop: wait for full load
-                window.addEventListener('load', function() {
+            // Remove on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(removePreloader, removeDelay);
                 });
+            } else {
+                setTimeout(removePreloader, removeDelay);
             }
             
-            // Fallback: remove after 800ms max for mobile, 1.5s for desktop
+            // Fallback: remove after max time
             setTimeout(function() {
                 const preloader = document.getElementById('preloader');
                 if (preloader && !preloader.classList.contains('fade-out')) {
                     removePreloader();
                 }
-            }, isMobile ? 800 : 1500);
+            }, isMobile ? 1000 : 2000);
         })();
     </script>
 @include("components.whatsapp-button")

@@ -1,35 +1,27 @@
 @extends('layouts.app')
-
 @section('content')
-<div class="container mx-auto px-4">
-    <nav class="mb-4">
-        <a href="/">Home</a> / 
-        <a href="/packages">Packages</a> / 
-        <span>{{ $package->name }}</span>
-    </nav>
+<div class="bg-white">
+    <!-- Video Section with optimized sources -->
+    <video autoplay loop muted playsinline preload="none" poster="{{ asset('storage/hero-poster.jpg') }}">
+        <source src="{{ asset('storage/hero.webm') }}" type="video/webm">
+        <source src="{{ asset('storage/hero-mobile.mp4') }}" type="video/mp4" media="(max-width: 768px)">
+        <source src="{{ asset('storage/hero-desktop.mp4') }}" type="video/mp4">
+    </video>
     
-    <h1 class="text-3xl font-bold mb-4">{{ $package->name }}</h1>
-    
-    <!-- Direct Link Button -->
-    <a href="/booking-new/{{ $package->id }}" 
-       class="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600">
-        Book Now
-    </a>
-    
-    <p class="mt-4 text-gray-600">{{ $package->description }}</p>
-    
-    <!-- Center section -->
-    <div class="text-center mt-12 p-8 bg-gray-50 rounded-lg">
-        <h2 class="text-2xl font-bold mb-4">Ready for Adventure?</h2>
-        <p class="mb-4">Book your {{ $package->name }} experience now!</p>
-        
-        <!-- Second Direct Link Button -->
-        <a href="/booking-new/{{ $package->id }}" 
-           class="inline-block bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg font-bold text-lg hover:from-green-600 hover:to-blue-600">
-            Book Now
-        </a>
-        
-        <p class="mt-2 text-gray-600">Price: ₹{{ number_format($package->price) }}</p>
-    </div>
+    <!-- Gallery with WebP and lazy loading -->
+    @for ($i = 1; $i <= 16; $i++)
+    <picture>
+        <source type="image/webp" data-srcset="{{ asset('storage/p'.$i.'.webp') }}">
+        <img class="lazyload blur-up" src="{{ asset('storage/p'.$i.'-tiny.jpg') }}" 
+             data-src="{{ asset('storage/p'.$i.'.jpg') }}" alt="Gallery {{$i}}">
+    </picture>
+    @endfor
 </div>
+
+@push('styles')
+<style>
+.blur-up { filter: blur(5px); transition: filter 400ms; }
+.blur-up.lazyloaded { filter: blur(0); }
+</style>
+@endpush
 @endsection

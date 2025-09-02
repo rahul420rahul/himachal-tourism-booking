@@ -6,6 +6,7 @@ const QuickBookingModal = ({ packageData }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         package_id: packageData.id,
+        user_id: document.querySelector('meta[name="user-id"]')?.content || null,
         booking_date: '',
         adults: 1,
         children: 0,

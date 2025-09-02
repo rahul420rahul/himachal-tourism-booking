@@ -118,6 +118,7 @@
                             user_name: formData.userName,
                             user_email: formData.userEmail,
                             user_phone: formData.userPhone,
+                            user_id: {{ $currentUserId ?? 'null' }},
                             participants: formData.participants,
                             total_amount: totalAmount,
                             advance_amount: advanceAmount,
